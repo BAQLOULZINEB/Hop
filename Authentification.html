@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preload" href="images/background-login.jpg" as="image">
+    <title>Login/Signup Form</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap');
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        html, body {
+            display: grid;
+            height: 100%;
+            width: 100%;
+            place-items: center;
+            background-image: url('images/background-login.jpg'); /* Replace with your image path */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0; /* Start with the page hidden */
+            animation: fadeIn 1s ease-in forwards;
+        }
+        @keyframes fadeIn {
+            to {
+                opacity: 1; /* Fully visiblethis for */
+            }
+        }
+
+        .wrapper {
+            overflow: hidden;
+            max-width: 390px;
+            background: rgba(255, 255, 255, 0.2); /* White with 20% opacity */
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px); /* Adds a subtle blur effect */
+            -webkit-backdrop-filter: blur(10px); /* For Safari support */
+            border: 1px solid rgba(255, 255, 255, 0.3); /* Optional: Add a border for a frosted glass effect */
+        }
+        
+        .wrapper .title-text {
+            display: flex;
+            width: 200%;
+        }
+        
+        .wrapper .title {
+            width: 50%;
+            font-size: 35px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.6s cubic-bezier(0.68,-0.55,0.265,1.55);
+        }
+        
+        .wrapper .slide-controls {
+            position: relative;
+            display: flex;
+            height: 50px;
+            width: 100%;
+            overflow: hidden;
+            margin: 30px 0 10px 0;
+            justify-content: space-between;
+            border: 1px solid lightgrey;
+            border-radius: 15px;
+        }
+        
+        .slide-controls .slide {
+            height: 100%;
+            width: 100%;
+            color: #000;
+            font-size: 18px;
+            font-weight: 500;
+            text-align: center;
+            line-height: 48px;
+            cursor: pointer;
+            z-index: 1;
+            transition: all 0.6s ease;
+        }
+        
+        .slide-controls label.signup {
+            color: #000;
+        }
+        
+        .slide-controls .slider-tab {
+            position: absolute;
+            height: 100%;
+            width: 50%;
+            left: 0;
+            z-index: 0;
+            border-radius: 15px;
+            background-image: linear-gradient(120deg, #0e2f44, #1a5276, #2e86c1);
+
+            transition: all 0.6s cubic-bezier(0.68,-0.55,0.265,1.55);
+        }
+        
+        input[type="radio"] {
+            display: none;
+        }
+        
+        #signup:checked ~ .slider-tab {
+            left: 50%;
+        }
+        
+        #signup:checked ~ label.signup {
+            color: #fff;
+            cursor: default;
+            user-select: none;
+        }
+        
+        #signup:checked ~ label.login {
+            color: #000;
+        }
+        
+        #login:checked ~ label.signup {
+            color: #000;
+        }
+        
+        #login:checked ~ label.login {
+            color: #fff;
+            cursor: default;
+            user-select: none;
+        }
+        
+        .wrapper .form-container {
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .form-container .form-inner {
+            display: flex;
+            width: 200%;
+        }
+        
+        .form-container .form-inner form {
+            width: 50%;
+            transition: all 0.6s cubic-bezier(0.68,-0.55,0.265,1.55);
+        }
+        
+        .form-inner form .field {
+            height: 50px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .form-inner form.login .field input {
+            width: 95%; /* Reduce the width of Sign In inputs to 80% */
+            margin: 0 auto; /* Center the inputs horizontally */
+            display: block; /* Ensure proper centering */
+        }
+        .form-inner form.signup .field input {
+            width: 95%; /* Reduce the width of Sign In inputs to 80% */
+            margin: 0 auto; /* Center the inputs horizontally */
+            display: block; /* Ensure proper centering */
+        }
+        
+        .form-inner form .field input {
+            height: 100%;
+            width: 100%;
+            outline: none;
+            padding-left: 15px;
+            border-radius: 15px;
+            border: 1px solid rgb(0, 0, 0);/* Subtle border for frosted effect */
+            background: rgba(255, 255, 255, 0.2); /* Lighter background with 20% opacity */
+            color: #000000; /* White text for contrast */
+            font-size: 17px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px); /* Adds a subtle blur effect */
+            -webkit-backdrop-filter: blur(5px); /* For Safari support */
+        }
+
+        .form-inner form .field input::placeholder {
+            color: #242628; /* Lighter placeholder text */
+            transition: all 0.3s ease;
+        }
+
+        .form-inner form .field input:focus {
+            border-color: black;/* Highlight border on focus */
+            background : rgba(255, 255, 255, 0.3) /* Slightly lighter background on focus */
+        }
+        form .field input:focus::placeholder {
+            color:  #2e86c1;
+        }
+        
+        
+        .form-inner form .pass-link {
+            margin-top: 5px;
+        }
+        
+        .form-inner form .signup-link {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .form-inner form .pass-link a,
+        .form-inner form .signup-link a {
+            color:  #234c68;
+            text-decoration: none;
+        }
+        
+        .form-inner form .pass-link a:hover,
+        .form-inner form .signup-link a:hover {
+            text-decoration: underline;
+        }
+        
+        form .btn {
+            height: 50px;
+            width: 100%;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        form .btn .btn-layer {
+            height: 100%;
+            width: 300%;
+            position: absolute;
+            left: -100%;
+            background-image: linear-gradient(120deg, #0e2f44, #1a5276, #2e86c1);
+
+            border-radius: 15px;
+            transition: all 0.4s ease;
+        }
+        
+        form .btn:hover .btn-layer {
+            left: 0;
+        }
+        
+        form .btn input[type="submit"] {
+            height: 100%;
+            width: 100%;
+            z-index: 1;
+            position: relative;
+            background: none;
+            border: none;
+            color: #fff;
+            padding-left: 0;
+            border-radius: 15px;
+            font-size: 20px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="title-text">
+            <div class="title login">Login </div>
+            <div class="title signup">Signup </div>
+        </div>
+        <div class="form-container">
+            <div class="slide-controls">
+                <input type="radio" name="slide" id="login" checked>
+                <input type="radio" name="slide" id="signup">
+                <label for="login" class="slide login">Login</label>
+                <label for="signup" class="slide signup">Signup</label>
+                <div class="slider-tab"></div>
+            </div>
+            <div class="form-inner">
+                <form action="#" class="login">
+                    <div class="field">
+                        <input type="text" placeholder="Email Address" required>
+                    </div>
+                    <div class="field">
+                        <input type="password" placeholder="Password" required>
+                    </div>
+                    <div class="pass-link"><a href="#">Forgot password?</a></div>
+                    <div class="field btn">
+                        <div class="btn-layer"></div>
+                        <input type="submit" value="Login">
+                    </div>
+                    <div class="signup-link">Not a member? <a href="#">Signup now</a></div>
+                </form>
+                <form action="#" class="signup">
+                    <div class="field">
+                        <input type="text" placeholder="Email Address" required>
+                    </div>
+                    <div class="field">
+                        <input type="password" placeholder="Password" required>
+                    </div>
+                    <div class="field">
+                        <input type="password" placeholder="Confirm password" required>
+                    </div>
+                    <div class="field btn">
+                        <div class="btn-layer"></div>
+                        <input type="submit" value="Signup">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="auth.js"></script>
+</body>
+</html>

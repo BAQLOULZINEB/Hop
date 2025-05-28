@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- TUI Calendar Dependencies -->
+     <link rel="preload" href="images/background_page.jpg" as="image">
+     <link rel="preload" href="images/background_page.jpg" as="image">
+    <link rel="stylesheet" href="https://uicdn.toast.com/tui.time-picker/latest/tui-time-picker.css">
+    <link rel="stylesheet" href="https://uicdn.toast.com/tui.date-picker/latest/tui-date-picker.css">
+    <link rel="stylesheet" href="https://uicdn.toast.com/tui-calendar/latest/tui-calendar.css">
+    
+    <!-- Your other CSS -->
+    <link rel="stylesheet" href="css_files/master.css">
+    <link rel="stylesheet" href="css_files/all.min.css">
+     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Admin_Dashboard</title>
+    <style>
+        /* Main layout */
+        .page {
+            display: flex;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .dashboard {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+        }
+        
+        .content {
+            flex: 1;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+        
+        /* Calendar styling to match image */
+        .calendar-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .view-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .view-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background: #e0e0e0;
+            color: #555;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .view-btn.active {
+            background: #2c3e50;
+            color: white;
+        }
+        
+        /* Adjust calendar height */
+        #reception-calendar {
+            height: 600px;
+            width: 100%;
+        }
+        
+        /* Event styling to match image */
+        .tui-calendar-weekday-schedule {
+            font-size: 12px;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin-bottom: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- Dashboard Sidebar -->
+        <div class="dashboard">
+            <div class="title">
+                <img class="logo" src="images/download__15__14-removebg-preview.png" alt="">
+                <h2>HopCare</h2>
+                <i class="fa-solid fa-bars toggle"></i>
+            </div>
+            <ul class="links">
+                <li>
+                    <a href="index.html">
+                        <i class="fa-solid fa-cubes fa-fw"></i>
+                        <span>Page d'accueil</span>
+                    </a>
+                </li>
+                <li class="num num1">
+                    <a class="listted" href="doctors.html">
+                        <i class="fa-solid fa-user-nurse fa-fw"></i>
+                        <span>Médecins</span>
+                        <i class="fa-solid fa-angle-right tog"></i>
+                    </a>
+                    <div class="list one">
+                        <a href="doctors.html">Médecins</a>
+                        <a href="add-doctors.html">Ajouter un médecin</a>
+                    </div>
+                </li>
+                <li class="num num2 active">
+                    <a class="listted" href="departments.html">
+                        <i class="fa-solid fa-people-group fa-fw"></i>
+                        <span>Spécialités</span>
+                        <i class="fa-solid fa-angle-right tog"></i>
+                    </a>
+                    <div class="list two">
+                        <a href="departments.html">Specialités</a>
+                        <a href="add-department.html" class="active">Ajouter  une Spécialité</a>
+                    </div>
+                </li>
+                <li>
+                    <a href="receiption.html">
+                        <i class="fa-solid fa-people-arrows fa-fw"></i>
+                        <span>Réception</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="Authentification.html">
+                        <i class="fa-solid fa-flask-vial fa-fw"></i>
+                        <span>Authentification</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="pharmacy.html">
+                        <i class="fa-solid fa-hand-holding-medical fa-fw"></i>
+                        <span>Pharmacie</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="articles.html">
+                        <i class="fa-solid fa-file-signature fa-fw"></i>
+                        <span>Rapports</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="coments.html">
+                        <i class="fa-regular fa-comments fa-fw"></i>
+                        <span>Charts</span>
+                    </a>
+                </li>
+            </ul>
+            <form method="post" class="log-out">
+                <button type="submit" name="logout">
+                    <i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i>
+                    <span>Déconnexion</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Header -->
+            <div class="header">
+                <div class="text">
+                    <p>Bonjour Dr. Ahmed Tarek</p>
+                </div>
+                <div class="search">
+                    <form action="" method="post" class="container">
+                      <div class="search-container">
+                        <input class="input" type="search" name="search_query" placeholder="Rechercher des noms de patients">
+                        <i class="fa-solid fa-magnifying-glass search__icon"></i>
+                        <input class="s_b" type="submit" value="Rechercher">
+                      </div>
+                    </form>
+                </div>
+                <div class="profile">
+                    <img src="images/avatar.jpg" alt="Profile" class="avatar">
+                    <span class="profile-name">John Doe</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+            </div>
+
+             <!-- Main Content -->
+        <div class="content">
+            <!-- Calendar Section -->
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <h2 class="calendar-title">May 2025</h2>
+                    <div class="view-buttons">
+                        <button id="btn-day" class="view-btn">Day</button>
+                        <button id="btn-week" class="view-btn active">Week</button>
+                        <button id="btn-month" class="view-btn">Month</button>
+                    </div>
+                </div>
+                
+                <!-- Calendar will be rendered here -->
+                <div id="reception-calendar"></div>
+            </div>
+        </div>
+
+        
+    </div>
+    </div>
+    
+    <!-- JS Dependencies AFTER HTML -->
+    <script src="https://uicdn.toast.com/tui.code-snippet/latest/tui-code-snippet.min.js"></script>
+    <script src="https://uicdn.toast.com/tui.dom/v3.0.0/tui-dom.js"></script>
+    <script src="https://uicdn.toast.com/tui.time-picker/latest/tui-time-picker.min.js"></script>
+    <script src="https://uicdn.toast.com/tui.date-picker/latest/tui-date-picker.min.js"></script>
+    <script src="https://uicdn.toast.com/tui-calendar/latest/tui-calendar.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendar = new tui.Calendar('#reception-calendar', {
+                defaultView: 'month',
+                taskView: false,
+                scheduleView: ['time'],
+                useDetailPopup: true,
+                month: {
+                    visibleWeeksCount: 6,
+                    daynames: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                    startDayOfWeek: 0
+                },
+                week: {
+                    daynames: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                    startDayOfWeek: 0,
+                    showTimezoneCollapseButton: false
+                },
+                template: {
+                    monthDayname: function(dayname) {
+                        return '<span class="calendar-week-dayname-name">' + dayname.label + '</span>';
+                    },
+                    monthSchedule: function(schedule) {
+                        return schedule.title;
+                    },
+                    time: function(schedule) {
+                        return schedule.title;
+                    }
+                }
+            });
+
+            // Add sample events to match your image
+            calendar.createSchedules([
+                {
+                    id: '1',
+                    calendarId: '1',
+                    title: '12a Dinner',
+                    category: 'time',
+                    start: '2025-05-18T00:00:00',
+                    end: '2025-05-18T01:00:00',
+                    bgColor: '#4caf50'
+                },
+                {
+                    id: '2',
+                    calendarId: '1',
+                    title: "Doctor's Appoint Meeting With Client",
+                    category: 'time',
+                    start: '2025-05-20T00:00:00',
+                    end: '2025-05-20T01:00:00',
+                    bgColor: '#e91e63'
+                },
+                {
+                    id: '3',
+                    calendarId: '1',
+                    title: 'Family Trip',
+                    category: 'time',
+                    start: '2025-05-22T00:00:00',
+                    end: '2025-05-22T02:00:00',
+                    bgColor: '#ff9800'
+                }
+            ]);
+
+            // View controls
+            const viewButtons = document.querySelectorAll('.view-btn');
+            viewButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    viewButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    if(this.id === 'btn-day') {
+                        calendar.changeView('day');
+                    } else if(this.id === 'btn-week') {
+                        calendar.changeView('week');
+                    } else {
+                        calendar.changeView('month');
+                    }
+                });
+            });
+        });
+    </script>
+
+
+
+
+        
+</body>
+</html>

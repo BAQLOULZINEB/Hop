@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- main css file -->
+     <link rel="preload" href="images/background_page.jpg" as="image">
+    <link rel="stylesheet" href="css_files/master.css">
+    <!-- font awesome -->
+    <link rel="stylesheet" href="css_files/all.min.css">
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://uicdn.toast.com/tui-calendar/latest/tui-calendar.css">
+    <title>Admin_Dashboard</title>
+</head>
+<body style="background-image: url('images/background_page.jpg'); background-color: rgba(12, 36, 54, 0.55); background-position: center; background-size: cover; background-repeat: no-repeat;"></body>
+    <div class="page receiption">
+        <div class="dashboard">
+            <div class="title">
+                <img class="logo" src="images/download__15__14-removebg-preview.png" alt="">
+                <h2>HopCare</h2>
+                <i class="fa-solid fa-bars toggle"></i>
+            </div>
+            <ul class="links">
+                <li>
+                    <a href="index.html">
+                        <i class="fa-solid fa-cubes fa-fw"></i>
+                        <span>Page d'accueil</span>
+                    </a>
+                </li>
+                <li class="num num1">
+                    <a class="listted" href="doctors.html">
+                        <i class="fa-solid fa-user-nurse fa-fw"></i>
+                        <span>Médecins</span>
+                        <i class="fa-solid fa-angle-right tog"></i>
+                    </a>
+                    <div class="list one" style="display: none;">
+                        <a href="doctors.html">Médecins</a>
+                        <a href="add-doctors.html">Ajouter un médecin</a>
+                    </div>
+                </li>
+                <li class="num num2">
+                    <a class="listted" href="departments.html">
+                        <i class="fa-solid fa-people-group fa-fw"></i>
+                        <span>Spécialités</span>
+                        <i class="fa-solid fa-angle-right tog"></i>
+                    </a>
+                    <div class="list two" style="display: none;">
+                        <a href="departments.html">Spécialités</a>
+                        <a href="add-department.html">Ajouter  une Spécialité</a>
+                    </div>
+                </li>
+                <li>
+                    <a href="receiption.html">
+                        <i class="fa-solid fa-people-arrows fa-fw"></i>
+                        <span>Réception</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="Authentification.html">
+                        <i class="fa-solid fa-flask-vial fa-fw"></i>
+                        <span>Authentification</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="pharmacy.html">
+                        <i class="fa-solid fa-hand-holding-medical fa-fw"></i>
+                        <span>Pharmacie</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="articles.html">
+                        <i class="fa-solid fa-file-signature fa-fw"></i>
+                        <span>Rapports</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="coments.html">
+                        <i class="fa-regular fa-comments fa-fw"></i>
+                        <span>Charts</span>
+                    </a>
+                </li>
+            </ul>
+            <form method="post" class="log-out">
+                <button type="submit" name="logout">
+                    <i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i>
+                    <span>Déconnexion</span>
+                </button>
+            </form>
+        </div>
+        <div class="content">
+            <div class="header pro-header">
+                <div class="header-left">
+                    <img src="images/download__15__14-removebg-preview.png" alt="Logo" class="header-logo">
+                    <div class="welcome">
+                        <h1>Bonjour Dr. Ahmed Tarek</h1>
+                        <span class="subtitle">Bienvenue sur votre tableau de bord</span>
+                    </div>
+                </div>
+                <div class="header-center">
+                    <form action="" method="post" class="search-bar">
+                        <input type="search" name="search_query" placeholder="Rechercher des noms de patients">
+                        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    </form>
+                </div>
+                <div class="header-right">
+                    <div class="profile-menu">
+                        <img src="images/avatar.jpg" alt="Profile" class="avatar">
+                        <span class="profile-name">John Doe</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                        <div class="profile-dropdown">
+                            <ul>
+                                <li><a href="profile.html">Mon Profil</a></li>
+                                <li><a href="settings.html">Paramètres</a></li>
+                                <li>
+                                    <form method="post">
+                                        <button type="submit" name="logout">Déconnexion</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+           
+           <!-- Main Content -->
+        <div class="calendar-container">
+            <div class="calendar-controls">
+                <div class="view-buttons">
+                    <button class="active" data-view="month">Month</button>
+                    <button data-view="week">Week</button>
+                    <button data-view="day">Day</button>
+                </div>
+                <div class="calendar-actions">
+                    <button id="addAppointment">+ New Appointment</button>
+                </div>
+            </div>
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <!-- Dependencies -->
+    <script src="https://uicdn.toast.com/tui.code-snippet/latest/tui-code-snippet.min.js"></script>
+    <script src="https://uicdn.toast.com/tui.dom/v3.0.0/tui-dom.js"></script>
+    <script src="https://uicdn.toast.com/tui.time-picker/latest/tui-time-picker.min.js"></script>
+    <script src="https://uicdn.toast.com/tui.date-picker/latest/tui-date-picker.min.js"></script>
+    <script src="https://uicdn.toast.com/tui-calendar/latest/tui-calendar.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const Calendar = tui.Calendar;
+            const calendar = new Calendar('#calendar', {
+                defaultView: 'month',
+                useCreationPopup: true,
+                useDetailPopup: true,
+                calendars: [
+                    {
+                        id: 'doctor',
+                        name: 'Doctor',
+                        backgroundColor: '#2c3e50'
+                    },
+                    {
+                        id: 'patient',
+                        name: 'Patient',
+                        backgroundColor: '#8e44ad'
+                    },
+                    {
+                        id: 'surgery',
+                        name: 'Surgery',
+                        backgroundColor: '#e74c3c'
+                    },
+                    {
+                        id: 'meeting',
+                        name: 'Meeting',
+                        backgroundColor: '#27ae60'
+                    }
+                ]
+            });
+
+            // Sample Data
+            calendar.createSchedules([
+                {
+                    id: '1',
+                    calendarId: 'doctor',
+                    title: 'Patient Checkup - John Doe',
+                    category: 'time',
+                    start: '2024-03-15T09:30:00',
+                    end: '2024-03-15T10:00:00'
+                },
+                {
+                    id: '2',
+                    calendarId: 'meeting',
+                    title: 'Staff Meeting',
+                    category: 'allday',
+                    start: '2024-03-16',
+                    end: '2024-03-16'
+                }
+            ]);
+
+            // View Controls
+            document.querySelectorAll('.view-buttons button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelector('.view-buttons .active').classList.remove('active');
+                    btn.classList.add('active');
+                    calendar.changeView(btn.dataset.view);
+                });
+            });
+
+            // New Appointment
+            document.getElementById('addAppointment').addEventListener('click', () => {
+                calendar.openCreationPopup({
+                    start: new Date(),
+                    end: new Date()
+                });
+            });
+
+            // Event Handling
+            calendar.on('beforeCreateSchedule', event => {
+                // PHP: Save to database here
+                console.log('Creating appointment:', event);
+            });
+
+            calendar.on('beforeUpdateSchedule', event => {
+                // PHP: Update database here
+                console.log('Updating appointment:', event);
+            });
+
+            calendar.on('beforeDeleteSchedule', event => {
+                // PHP: Delete from database here
+                console.log('Deleting appointment:', event);
+                calendar.deleteSchedule(event.schedule.id, event.calendarId);
+            });
+        });
+    </script>
+    </div>
+</body>
+
+</html>

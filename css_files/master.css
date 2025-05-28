@@ -1,0 +1,1265 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Noto Sans Arabic", sans-serif;
+}
+ul {
+  list-style: none;
+}
+a {
+  text-decoration: none;
+}
+.page {
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  background-image: url('../images/background_page.jpg');
+}
+body {
+  font-family: 'Noto Sans', sans-serif;
+  background-image: url('../images/background_page.jpg');
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+/* dashboard */
+.dashboard {
+  position: relative;
+  width: 250px;
+  background: none !important; /* Remove existing background */
+  backdrop-filter: blur(16px) saturate(180%); /* Apply glass effect */
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(12, 36, 54, 0.55); /* Semi-transparent background */
+  border-radius: 32px; /* Match the content border radius */
+  border: 1px solid rgba(255, 255, 255, 0.125); /* Add subtle border */
+  color: white;
+  padding: 0; /* Remove padding */
+  margin: 0; /* Remove margin */
+  float: left;
+  text-align: left;
+  transition: 0.5s, box-shadow 0.4s cubic-bezier(.4,2,.6,1);
+  box-shadow: 0 8px 32px rgba(32,53,67,0.10); /* Match content shadow */
+  z-index: 10;
+  background-image: url('../images/background_page.jpg'); /* Add background image */
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.dashboard.toggled {
+  box-shadow: 8px 0 40px 0 rgba(32,53,67,0.22), 0 4px 16px 0 rgba(32,53,67,0.14);
+}
+
+.dashboard .title {
+  display: flex;
+  margin-left: -30px;
+  margin-right:10px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.dashboard .logo {
+  width: 100px;
+  margin-left: 20px;
+  margin-top: 10px;
+}
+.dashboard .title h2 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: 28px;
+  margin-top: 10px;
+  margin-right: 30px;
+  text-align: center;
+  color: #fff;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(120deg, #fff, #e0e0e0);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: all 0.3s ease;
+}
+.dashboard .title i {
+  font-size: 20px;
+  color: #fff;
+  cursor: pointer;
+}
+.dashboard .title .toggle {
+  position: absolute; /* Position it relative to the dashboard */
+  top: 20px; /* Adjust vertical position */
+  right: -20px; /* Place it slightly outside the dashboard */
+  background-image: linear-gradient(120deg, #0e2f44, #1a5276);
+  color: white; /* Ensure the icon is visible */
+  padding: 10px;
+  border-radius: 50%; /* Make it circular */
+  cursor: pointer;
+  z-index: 1000; /* Ensure it stays on top of other elements */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Add a subtle shadow */
+  transition: transform 0.3s ease; /* Smooth animation */
+}
+
+/* Add hover effect for better interactivity */
+.dashboard .title .toggle:hover {
+  background-color: #1e2e8a; /* Darker blue background */
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.5); /* Add a realistic 3D shadow */
+  transform: translateY(-2px); /* Slight lift effect */
+}
+
+.dashboard .title .toggle {
+  right: -15px; /* Adjust position for smaller screens */
+}
+
+.dashboard .links {
+  flex-direction: column;
+  display: flex;
+  margin-top: 70px; /* Move the list closer to the top */
+}
+.dashboard .links li {
+  margin-bottom: 5px; /* Reduce spacing between items */
+  border-radius: 15px; /* Slightly smaller border radius */
+  padding: 8px 5px; /* Narrow the padding for a slimmer appearance */
+  transition: 0.3s;
+  background-image: linear-gradient(120deg, #0e2f44, #1a5276);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Subtle shadow for 3D effect */
+}
+.dashboard .links li:hover {
+  background-color: #1e2e8a; /* Darker background on hover */
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.5); /* Add a realistic 3D shadow */
+  transform: translateY(-2px); /* Slight lift effect */
+}
+.dashboard .links li a {
+  color: white;
+  width: 100%;
+  display: block;
+  padding: 5px 10px; /* Adjust padding inside the links */
+  font-size: 14px; /* Font size for the text */
+  font-weight: bold;
+}
+.dashboard .links li a span {
+  font-weight: bold;
+  font-size: 14px;
+  margin-right: 0px;
+  margin-left: 10px; /* Adjust spacing for left alignment */
+}
+.dashboard .links .listted {
+  display: block;
+  width: 100%;
+  position: relative;
+  border-radius: 20px;
+  margin-bottom: 5px;
+}
+/* Submenu links (list one and list two) */
+.dashboard .links .list a {
+  display: block;
+  padding: 8px 10px; /* Add padding for better spacing */
+  border-radius: 10px; /* Rounded corners */
+  color: white;
+  background-image: linear-gradient(120deg, #0e2f44, #1a5276, #2e86c1);
+  transition: all 0.3s ease; /* Smooth transition for hover effects */
+  text-decoration: none; /* Remove underline */
+}
+
+/* Hover effect for submenu links */
+.dashboard .links .list a:hover {
+  background-color: #1e2e8a; /* Darker background on hover */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Add shadow for 3D effect */
+  transform: translateY(-2px); /* Slight lift effect */
+}
+
+.dashboard .links .listted .tog {
+  position: absolute;
+  left:auto;
+  right:10px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: 0.3s;
+}
+.rotate {
+  transform: rotate(90deg);
+}
+/* .dashboard .links .listted:hover > .tog {
+  transform: rotate(90deg);
+} */
+.dashboard .links .num {
+  transition: 0.3s;
+  background-color: transparent !important;
+}
+
+.dashboard .links .num .list {
+  display: none;
+  transition: 0.3s;
+  /* padding-right: 10px; */
+}
+.dashboard .links .num .list a {
+  display: block;
+  font-size: 16px;
+  padding: 0 10px;
+  border-radius: 15px;
+}
+/* @media (min-width: 768px) {
+  .dashboard .links .num1:hover .one {
+    display: block;
+  }
+  .dashboard .links .num2:hover .two {
+    display: block;
+  }
+} */
+.dashboard .log-out {
+  width: 80%;
+  position: absolute;
+  bottom: 5px;
+}
+.dashboard .links li:hover,
+.dashboard .links .active {
+    background-color: #1e2e8a; /* Darker blue background */
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.5); /* Add a realistic 3D shadow */
+    transform: translateY(-2px); /* Slight lift effect */
+}
+.dashboard .log-out button span,
+.dashboard .log-out button i {
+  color: white;
+}
+.dashboard .log-out button {
+  padding: 5px;
+  border-radius: 10px;
+  width: 100%;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  transition: .3s;
+}
+
+.dashboard .log-out button:hover {
+  background-color: #eb51518a;
+}
+.dashboard .log-out button span {
+  margin-right: 10px;
+  font-size: 14px;
+  font-weight: bold;
+}
+@media (max-width: 767px) {
+  .dashboard {
+    width: 50px;
+  }
+  .dashboard .title {
+    position: relative;
+    margin-bottom: 70px;
+  }
+  .dashboard .title .logo {
+    position: absolute;
+    width: 50px;
+    height: 40px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, 0%);
+  }
+  .dashboard .title h2,
+  .dashboard .title i {
+    display: none;
+  }
+  .dashboard .links span,
+  .dashboard .log-out span {
+    display: none;
+  }
+  .dashboard .links .listted .tog {
+    display: none;
+  }
+  .dashboard .links .num .list {
+    display: none !important;
+  }
+  .dashboard .log-out {
+    width: fit-content;
+  }
+}
+/* end dashboard */
+/* admin content  */
+.content {
+  width: calc(100% - 250px);
+  margin-left: 0;
+  margin-right: 0;
+  text-align: left;
+  border-top-right-radius: 32px;
+  border-bottom-right-radius: 32px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  box-shadow: 0 8px 32px rgba(32,53,67,0.10);
+  padding: 32px 32px 32px 32px;
+  position: relative;
+  overflow: hidden;
+  background: none !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(12, 36, 54, 0.55);
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.125);
+}
+
+/* Remove any .content::before overlay */
+.content::before { display: none !important; }
+
+.content > * {
+  position: relative;
+  z-index: 1;
+}
+
+.content .header {
+  display: flex;
+  text-align: left;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 10px; /* Adjust padding for left alignment */
+  padding-right: 0; /* Remove right padding */
+  background: none;
+  margin-bottom: 20px;
+}
+.content .header .search {
+  width: 100%; /* Allow the search container to take full width */
+  display: flex; /* Align items horizontally */
+  align-items: center; /* Vertically align items */
+  gap: 10px; /* Add spacing between input and button */
+  align-items: center;
+}
+.content .header .search form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.content .header .search input[type="search"] {
+  flex: 1; /* Allow the input to take up the remaining space */
+  padding: 5px 10px; /* Add padding for better spacing */
+  border: 1px solid #ccc; /* Add a border for better visibility */
+  border-radius: 10px; /* Add rounded corners */
+  font-size: 10px; /* Adjust font size */
+}
+.content .header .search i {
+  
+  right: auto;
+  left:15px;
+  top: 10px;
+}
+.content .header .search input[type="submit"],
+.b-s {
+  background-image: linear-gradient(120deg, #0e2f44, #1a5276, #2e86c1);
+  width: 100px;
+  border-radius: 10px;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+}
+.content .header .search input[type="search"]:focus {
+  outline: none;
+}
+.content .header .search input[type="submit"]:hover {
+  background-color: #1e2e8a;
+}
+.content .header .avatar {
+  width: 30px;
+}
+@media (max-width: 767px) {
+  .content .header {
+    padding: 5px 5px;
+  }
+  .content .header .text p {
+    font-size: 10px;
+  }
+  .content .header .search {
+    width: 200px;
+    position: relative;
+  }
+  .content .header .search input {
+    width: 100%;
+    padding: 5px 30px 5px 5px;
+    border-radius: 10px;
+    border: none;
+    font-size: 12px;
+    /* background-color: transparent; */
+  }
+  .content .header .search i {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+  }
+}
+.content .details {
+  display: flex;
+  grid-gap: 30px;
+  padding: 0 20px;
+  margin-bottom: 30px;
+  justify-content: space-around;
+}
+.content .details .main-details {
+  width: 50%;
+  height: 200px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(150px, 1fr));
+  grid-gap: 10px;
+}
+.content .details .main-details .m-d {
+  background-image: linear-gradient(120deg, #0e2f44, #1a5276, #2e86c1);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border-radius: 10px;
+}
+.content .details .main-details .m-d i {
+  font-size: 30px;
+}
+.content .details .main-details .m-d .stat {
+  text-align: center;
+}
+
+.add-department {
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.add-department .forms {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.add-department .forms label {
+  display: block;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #555;
+}
+
+.add-department .forms input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+.add-department .save-button button {
+  background-color: #2a3eb1;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-department .save-button button:hover {
+  background-image: linear-gradient(120deg, #0e2f44, #1a5276, #2e86c1);
+
+}
+
+
+.add-department .dashboard .links li a {
+  background-image: linear-gradient(120deg, #0e2f44, #1a5276, #2e86c1);
+  border-radius: 15px;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  transition: 0.3s;
+ 
+}
+
+.add-department .dashboard .links .list a {
+  background-image: linear-gradient(120deg, #0e2f44, #1a5276);
+  border-radius: 10px;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.add-department .dashboard .log-out button {
+  border-radius: 10px;
+  width: 100%;
+  background-color: transparent;
+  border: none;
+  font-weight: bold;
+  color: white;
+  transition: 0.3s;
+}
+
+.add-department .dashboard .title {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.add-department .dashboard .title img {
+  width: 100px;
+}
+
+.add-department .dashboard .title h2 {
+  font-weight: bold;
+  color: white;
+}
+
+.details .statistics {
+  width: 50%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.details .statistics .circle {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  border-top: 20px solid #59a0e0;
+  border-right: 20px solid #59a0e0;
+  border-bottom: 20px solid #40d577;
+  border-left: 20px solid #e4664f;
+  transform: rotate(45deg);
+  margin-left: 30px;
+}
+.details .statistics .explain p {
+  font-size: 16px;
+}
+.details .statistics .explain .exp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.details .statistics .explain .exp div {
+  width: 30px;
+  height: 20px;
+  border-radius: 5px;
+}
+.details .statistics .explain .exp1 div {
+  background-color: #59a0e0;
+}
+.details .statistics .explain .exp2 div {
+  background-color: #e4664f;
+}
+.details .statistics .explain .exp3 div {
+  background-color: #40d577;
+}
+@media (max-width: 767px) {
+  .content .details {
+    display: block;
+    padding: 0 5px;
+    grid-gap: 15px;
+  }
+  .content .details .main-details,
+  .content .details .statistics {
+    width: 100%;
+  }
+  .content .details .main-details {
+    grid-template-columns: repeat(2, minmax(150px, 1fr));
+    margin-bottom: 20px;
+  }
+  .content .details .statistics {
+    justify-content: space-around;
+  }
+}
+@media (max-width: 991px) {
+  .content .details {
+    display: block;
+    padding: 0 5px;
+    grid-gap: 15px;
+  }
+  .content .details .main-details,
+  .content .details .statistics {
+    width: 100%;
+  }
+  .content .details .main-details {
+    grid-template-columns: repeat(2, minmax(150px, 1fr));
+    margin-bottom: 20px;
+  }
+  .content .details .statistics {
+    justify-content: space-around;
+  }
+}
+.content .illness-list {
+  background-color: #eee; 
+  width: 100%;
+  height: 55%;
+  padding: 0 10px;
+  overflow-y: auto;
+  overflow-x: auto;
+  border-radius: 10px;
+}
+.content .illness-list table {
+  width: 100%;
+  max-height: 100%;
+  /* background-color: #eee; */
+  border-spacing: 0;
+  border-radius: 10px;
+  padding: 15px;
+}
+.content .illness-list table tbody tr td {
+  padding: 10px 10px;
+  transition: 0.3s;
+}
+.content .illness-list table tbody tr:hover td {
+  background-color: #ddd;
+}
+.content .illness-list table tbody tr:hover .dot button {
+  background-color: #eee;
+}
+.content .illness-list table thead tr #logo,
+.content .illness-list table thead tr #search {
+  text-align: center;
+}
+.content .illness-list table thead tr td input[type="search"] {
+  width: 350px;
+  height: 35px;
+  border: none;
+  margin-left: 10px;
+  padding-right: 30px;
+  border-radius: 10px;
+}
+.content .illness-list table thead tr td input[type="search"]:focus {
+  outline: none;
+}
+.content .illness-list table thead tr td:nth-child(2) {
+  text-align: center;
+}
+.content .illness-list table thead tr td img {
+  width: 100px;
+  margin-left: -100px;
+}
+.content .illness-list table tbody tr:first-child {
+  background-color: #ddd;
+}
+.content .illness-list table tbody .bor td {
+  border-top: 1px solid #333;
+}
+.content .illness-list table tbody tr .dot button {
+  width: 50px;
+  border: none;
+  background-color: #ddd;
+  border-radius: 5px;
+  transition: 0.3s;
+}
+
+/* end admin content */
+/* start doctor content */
+
+
+
+
+.add-doctor {
+  margin-top: 20px; /* Add spacing between the header and .add-doctor */
+}
+.content .doctors-list {
+  width: 100%;
+  height: 87%;
+  padding: 0 15px;
+  overflow-y: auto;
+  overflow-x: auto;
+  background-color: #eee;
+}
+.content .doctors-list table {
+  width: 100%;
+  height: 100%;
+  padding: 15px;
+  border-spacing: 0;
+  border-radius: 10px;
+}
+.content .doctors-list table td {
+  padding: 10px;
+}
+.content .doctors-list table thead td form {
+  display: flex;
+  gap: 10px;
+}
+.content .doctors-list table thead td input[type="search"] {
+  width: 350px;
+  height: 40px;
+  padding-right: 30px;
+  border: none;
+  border-radius: 10px;
+}
+.content .doctors-list table thead .tit {
+  font-size: 25px;
+  font-weight: bold;
+}
+.content .doctors-list table thead td input[type="search"]:focus {
+  outline: none;
+}
+.content .doctors-list table thead td img {
+  width: 100px;
+}
+.content .doctors-list table tbody .first-row,
+.content .doctors-list table tbody tr:hover td {
+  background-color: #ddd;
+  transition: 0.3s;
+}
+.content .doctors-list table tbody tr:hover .modefie button {
+  background-color: #eee;
+}
+.content .doctors-list table tbody .first-row td:last-child {
+  text-align: center;
+}
+.content .doctors-list table tbody tr:not(:first-child) td {
+  border-bottom: 1px solid #333;
+}
+.content .doctors-list table tbody tr .modefie {
+  text-align: center;
+}
+.content .doctors-list table tbody tr .modefie button {
+  width: 50px;
+  border: none;
+  background-color: #ddd;
+  border-radius: 5px;
+  transition: 0.3s;
+  cursor: pointer;
+}
+.view-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.view-buttons button {
+  background: rgba(12, 36, 54, 0.75);
+  color: #CFCCB4;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 24px;
+  padding: 10px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(32,53,67,0.10);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.view-buttons button.active,
+.view-buttons button:focus {
+  background: linear-gradient(120deg, #0e2f44 0%, #1a5276 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(32,53,67,0.18);
+}
+
+#addAppointment {
+  margin-left: auto; /* Push the "New Appointment" button to the right */
+  background: linear-gradient(120deg, #0e2f44 0%, #1a5276 100%);
+  color: #CFCCB4;
+  border: none;
+  border-radius: 24px;
+  padding: 10px 28px;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(32,53,67,0.10);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+#addAppointment:hover {
+  background: linear-gradient(120deg, #1a5276 0%, #0e2f44 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(32,53,67,0.18);
+}
+
+/* Adjusted styles for view-buttons and addAppointment */
+.view-buttons button,
+#addAppointment {
+  height: 44px; /* Set the height of the buttons */
+  padding: 0 28px; /* Adjust horizontal padding */
+  font-size: 12px; /* Set font size */
+  border-radius: 12px; /* Adjust border radius */
+}
+/* end doctor content */
+/* add doctor content */
+.content .add-doctor {
+  width: 100%;
+  height: 87%;
+  background-color: #eee;
+  padding: 0 15px;
+  border-radius: 10px;
+}
+.content .add-doctor .title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.content .add-doctor .title img {
+  width: 100px;
+}
+.content .add-doctor .forms {
+  height: 100%;
+  overflow-y: auto;
+  padding: 0 10px 10px 10px;
+}
+.content .add-doctor .forms div label {
+  display: block;
+  font: 10px;
+  margin-right: 10px;
+}
+.content .add-doctor .forms div input {
+  width: 100%;
+  padding-right: 15px;
+  /* border: none; */
+  border-top: 1px solid blue;
+  border-right: 1px solid blue;
+  border-left: 1px solid blue;
+  border-bottom: none;
+  border-radius: 8px;
+}
+.content .add-doctor .forms div input:focus {
+  outline: none;
+}
+.content .add-doctor .forms .save-button {
+  margin-top: 20px;
+}
+.content .add-doctor .forms .save-button button {
+  width: 100px;
+  border: none;
+  background-color: #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+}
+/*end add doctor content */
+/*add department content */
+.add-department {
+  width: 100%;
+  height: 100%; /* Same height as .add-doctor */
+  background-color: #eee; /* Same background color */
+  padding: 0 15px; /* Same padding */
+  border-radius: 10px; /* Same border radius */
+}
+
+/* Title Section */
+.add-department .title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.add-department .title img {
+  width: 100px; /* Same image size */
+}
+
+/* Forms Section */
+.add-department .forms {
+  height: 100%; /* Same height as .add-doctor */
+  overflow-y: auto; /* Enable scrolling for long forms */
+  padding: 0 10px 10px 10px; /* Same padding */
+}
+
+.add-department .forms div label {
+  display: block;
+  font-size: 14px; /* Same font size */
+  margin-bottom: 5px; /* Add spacing below labels */
+  color: #555; /* Same label color */
+}
+
+.add-department .forms div input {
+  width: 100%;
+  padding: 10px; /* Same padding */
+  border: 1px solid #ccc; /* Same border style */
+  border-radius: 5px; /* Same border radius */
+  margin-bottom: 15px; /* Add spacing between inputs */
+  font-size: 14px; /* Same font size */
+}
+
+.add-department .forms div input:focus {
+  outline: none; /* Remove outline on focus */
+  border-color: blue; /* Highlight border on focus */
+}
+
+/* Save Button */
+.add-department .save-button {
+  margin-top: 20px; /* Same margin as .add-doctor */
+}
+
+.add-department .save-button button {
+  width: 100px; /* Same button width */
+  border: none;
+  background-color: #ddd; /* Same background color */
+  border-radius: 5px; /* Same border radius */
+  cursor: pointer;
+  transition: 0.3s; /* Smooth transition */
+}
+
+.add-department .save-button button:hover {
+  background-color: #ccc; /* Change background color on hover */
+}
+/*end add doctor content */
+/* articles */
+.articles {
+  height: 100%;
+}
+.articles .articles_from {
+  width: 100%;
+  background-color: #eee;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+.articles .articles_from .logo {
+  width: 100%;
+  height: 80px;
+  position: relative;
+}
+.articles .articles_from .logo img {
+  width: 120px;
+  position: absolute;
+  left: -15px;
+  top: -15px;
+  z-index: 2;
+}
+.articles .articles_from .from {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.articles .articles_from .from div {
+  background-image: linear-gradient(110deg,#180d8d,#3532b4);
+  flex-basis: 200px;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  border-radius: 10px;
+}
+.articles .articles_from .from div span {
+  font-size: 20px;
+  margin-right: 10px;
+}
+@media (max-width: 767px) {
+  .articles .articles_from .logo img {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .articles .articles_from .from {
+    flex-direction: column;
+  }
+  .articles .articles_from .from div {
+    flex: 1;
+    width: 100%;
+  }
+  .articles .articles_from .from div:nth-child(2) {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+}
+.articles .pharmacy_articles {
+  background-color: #eee;
+  height: 55%;
+}
+.articles .pharmacy_articles table {
+  width: 100%;
+  max-height: 100%;
+  border-spacing: 0;
+}
+.articles .pharmacy_articles table td {
+  padding: 3px;
+}
+.articles .pharmacy_articles table .first-row {
+  background-color: #ddd;
+}
+.articles .pharmacy_articles table thead tr td {
+  font-size: 25px;
+  margin-right: 10px;
+  font-weight: bold;
+}
+.articles .pharmacy_articles table tbody tr td {
+  text-align: center;
+}
+.articles .pharmacy_articles table tbody tr:hover td {
+  background-color: #ddd;
+}
+.articles .pharmacy_articles table tbody tr:hover .mod button {
+  background-color: #eee;
+}
+.articles .pharmacy_articles table tbody tr:not(:first-child) td {
+  border-bottom: 1px solid #333;
+}
+.articles .pharmacy_articles table tbody tr .mod button {
+  width: 50px;
+  background-color: #ddd;
+  border: none;
+  border-radius: 5px;
+  transition: 0.3s;
+}
+/* end articles */
+
+
+
+/* end coments */
+/* recieption */
+
+
+
+
+/* celander */
+.calendar {
+  width: 450px;
+  height: 220px;
+  padding: 10px;
+  background: #fff;
+  border-radius: 10px;
+  background-color: #eee;
+}
+.calendar header {
+  /* display: flex;
+  align-items: center;
+  justify-content: space-between; */
+  text-align: center;
+  position: relative;
+}
+.calendar section {
+  height: 150px;
+  overflow: auto;
+}
+.calendar nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row-reverse;
+  position: absolute;
+  top: 25%;
+  width: 100%;
+}
+.calendar ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  text-align: center;
+}
+.calendar ul li {
+  width: calc(100% / 7);
+  position: relative;
+  z-index: 2;
+}
+
+.calendar-container {
+  margin: 20px 0;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-controls {
+  display: flex;
+  justify-content: space-between; /* Align buttons to opposite sides */
+  align-items: center;
+  margin-bottom: 16px; /* Space between buttons and calendar */
+}
+
+.view-buttons {
+  display: flex;
+  gap: 12px; /* Space between the buttons on the left */
+}
+
+#addAppointment {
+  margin-left: auto; /* Push the "New Appointment" button to the right */
+  background: linear-gradient(120deg, #0e2f44 0%, #1a5276 100%);
+  color: #CFCCB4;
+  border: none;
+  border-radius: 24px;
+  padding: 10px 28px;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(32,53,67,0.10);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  outline: none;
+  /* Center the text */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center
+}
+
+#addAppointment:hover {
+  background: linear-gradient(120deg, #1a5276 0%, #0e2f44 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(32,53,67,0.18);
+}
+
+/* end receiption */
+
+/* Professional Modern Header */
+.pro-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(90deg, #203543 60%, #CFCCB4 100%);
+  color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(32,53,67,0.08);
+  padding: 4px 10px;
+  margin-bottom: 10px;
+  height: 30px;
+  position: relative;
+  z-index: 2;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.header-logo {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: #152B3A;
+  box-shadow: 0 2px 8px rgba(21,43,58,0.10);
+  object-fit: contain;
+}
+.welcome h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: #CFCCB4;
+  letter-spacing: 0.5px;
+}
+.welcome .subtitle {
+  font-size: 1rem;
+  color: #BBB698;
+  margin-top: 2px;
+  display: block;
+}
+
+.header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+.search-bar {
+  display: flex;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 2px 8px rgba(32,53,67,0.06);
+  overflow: hidden;
+  max-width: 350px;
+  width: 100%;
+}
+.search-bar input[type="search"] {
+  border: none;
+  padding: 12px 16px;
+  font-size: 1rem;
+  outline: none;
+  flex: 1;
+  color: #203543;
+  background: transparent;
+}
+.search-bar button {
+  background: #203543;
+  color: #CFCCB4;
+  border: none;
+  padding: 0 18px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: background 0.2s;
+}
+.search-bar button:hover {
+  background: #152B3A;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.profile-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.profile-menu .avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #CFCCB4;
+  object-fit: cover;
+}
+.profile-menu .profile-name {
+  font-weight: 600;
+  color: #CFCCB4;
+}
+.profile-menu .fa-chevron-down {
+  color: #CFCCB4;
+  font-size: 1rem;
+}
+.profile-menu .profile-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 60px;
+  background: #fff;
+  color: #203543;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(32,53,67,0.12);
+  min-width: 180px;
+  z-index: 10;
+  padding: 12px 0;
+}
+.profile-menu:hover .profile-dropdown,
+.profile-menu:focus-within .profile-dropdown {
+  display: block;
+}
+.profile-dropdown ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.profile-dropdown li {
+  padding: 10px 24px;
+  transition: background 0.2s;
+}
+.profile-dropdown li:hover {
+  background: #CFCCB4;
+  color: #203543;
+}
+.profile-dropdown a, .profile-dropdown button {
+  color: inherit;
+  text-decoration: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+@media (max-width: 900px) {
+  .pro-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px 10px;
+    gap: 18px;
+  }
+  .header-center {
+    width: 100%;
+    margin: 12px 0;
+  }
+}
+
+.calendar-container,
+.articles,
+.add-doctor,
+.add-department,
+.content .illness-list,
+.content .doctors-list {
+  background: none !important;
+  box-shadow: 0 4px 24px rgba(32,53,67,0.08);
+  border-radius: 24px;
+  padding: 24px;
+}
+
+.card {
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(12, 36, 54, 0.75);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.125);
+}

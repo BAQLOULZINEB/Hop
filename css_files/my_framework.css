@@ -1,0 +1,13 @@
+/* flex & grid */
+.d-flex{
+    display: flex;
+}
+.f-cc {
+    display: flex;
+    align-items: center;
+}
+/* padding & margin */
+.p-10{
+    padding: 10px;
+}
+

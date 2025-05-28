@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- main css file -->
+    <link rel="preload" href="images/background_page.jpg" as="image">
+    <link rel="stylesheet" href="css_files/master.css">
+    <!-- font awesome -->
+    <link rel="stylesheet" href="css_files/all.min.css">
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>doctors_Dashboard</title>
+</head>
+<body>
+    <div class="page">
+        <div class="dashboard">
+            <div class="title">
+                <img class="logo" src="images/download__15__14-removebg-preview.png" alt="">
+                <h2>HopCare</h2>
+                <i class="fa-solid fa-bars toggle"></i>
+            </div>
+            <ul class="links">
+                <li>
+                    <a href="index.html">
+                        <i class="fa-solid fa-cubes fa-fw"></i>
+                        <span>Page d'accueil</span>
+                    </a>
+                </li>
+                <li class="num num1">
+                    <a class="listted" href="doctors.html">
+                        <i class="fa-solid fa-user-nurse fa-fw"></i>
+                        <span>Médecins</span>
+                        <i class="fa-solid fa-angle-right tog"></i>
+                    </a>
+                    <div class="list one" style="display: none;">
+                        <a href="doctors.html">Médecins</a>
+                        <a href="add-doctors.html">Ajouter un médecin</a>
+                    </div>
+                </li>
+                <li class="num num2">
+                    <a class="listted" href="departments.html">
+                        <i class="fa-solid fa-people-group fa-fw"></i>
+                        <span>Spécialités</span>
+                        <i class="fa-solid fa-angle-right tog"></i>
+                    </a>
+                    <div class="list two" style="display: none;">
+                        <a href="departments.html">Départements</a>
+                        <a href="add-department.html">Ajouter  une Spécialité</a>
+                    </div>
+                </li>
+                <li>
+                    <a href="receiption.html">
+                        <i class="fa-solid fa-people-arrows fa-fw"></i>
+                        <span>Réception</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="Authentification.html">
+                        <i class="fa-solid fa-flask-vial fa-fw"></i>
+                        <span>Authentification</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="pharmacy.html">
+                        <i class="fa-solid fa-hand-holding-medical fa-fw"></i>
+                        <span>Pharmacie</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="articles.html">
+                        <i class="fa-solid fa-file-signature fa-fw"></i>
+                        <span>Rapports</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="coments.html">
+                        <i class="fa-regular fa-comments fa-fw"></i>
+                        <span>Charts</span>
+                    </a>
+                </li>
+            </ul>
+            <form method="post" class="log-out">
+                <button type="submit" name="logout">
+                    <i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i>
+                    <span>Déconnexion</span>
+                </button>
+            </form>
+        </div>
+        <div class="content">
+            <div class="header pro-header">
+                <div class="header-left">
+                    <img src="images/download__15__14-removebg-preview.png" alt="Logo" class="header-logo">
+                    <div class="welcome">
+                        <h1>Bonjour Dr. Ahmed Tarek</h1>
+                        <span class="subtitle">Bienvenue sur votre tableau de bord</span>
+                    </div>
+                </div>
+                <div class="header-center">
+                    <form action="" method="post" class="search-bar">
+                        <input type="search" name="search_query" placeholder="Rechercher des noms de patients">
+                        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    </form>
+                </div>
+                <div class="header-right">
+                    <div class="profile-menu">
+                        <img src="images/avatar.jpeg" alt="Profile" class="avatar">
+                        <span class="profile-name">John Doe</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                        <div class="profile-dropdown">
+                            <ul>
+                                <li><a href="profile.html">Mon Profil</a></li>
+                                <li><a href="settings.html">Paramètres</a></li>
+                                <li>
+                                    <form method="post">
+                                        <button type="submit" name="logout">Déconnexion</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+           <!-- <div class="articles">
+                <div class="articles_from">
+                    <div class="logo">
+                        <img src="images/download__15_-removebg-preview.png" alt="">
+                    </div>
+                    <div class="from">
+                        <div>
+                            <i class="fa-solid fa-people-arrows fa-fw"></i> 
+                            <span>الإستقبال</span>
+                            <p>3</p>
+                        </div>
+                        <div>
+                            <i class="fa-solid fa-flask-vial fa-fw"></i>
+                            <span>المعمل</span>
+                            <p>2</p>
+                        </div>
+                        <div>
+                            <i class="fa-solid fa-hand-holding-medical fa-fw"></i>
+                            <span>الصيدلية</span>
+                            <p>5</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="pharmacy_articles">
+                    <table>
+                        <thead>
+                            <tr>
+                                <td colspan="7">
+                                    الصيدلية
+                                </td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="first-row">
+                                <td>#</td>
+                                <td colspan="2">إسم التقرير</td>
+                                <td colspan="3">معاد التسجيل</td>
+                                <td colspan="2">حذف</td>
+                            </tr>
+                            <tr class="">
+                                <td>1</td>
+                                <td colspan="2">برامول</td>
+                                <td colspan="3">30-11-2022 20:09:05</td>
+                                <td colspan="2" class="mod">
+                                    <form action="" method="post">
+                                        <button type="submit"><i class="fa-solid fa-xmark"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr class="">
+                                <td>2</td>
+                                <td colspan="2">بنادول</td>
+                                <td colspan="3">20-11-2022 22:09:05</td>
+                                <td colspan="2" class="mod">
+                                    <form action="" method="post">
+                                        <button type="submit"><i class="fa-solid fa-xmark"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr class="">
+                                <td>3</td>
+                                <td colspan="2">c فيتامين </td>
+                                <td colspan="3">20-10-2022 21:09:05</td>
+                                <td colspan="2" class="mod">
+                                    <form action="" method="post">
+                                        <button type="submit"><i class="fa-solid fa-xmark"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr class="">
+                                <td>4</td>
+                                <td colspan="2">أوتريفين</td>
+                                <td colspan="3">20-9-2022 19:09:05</td>
+                                <td colspan="2" class="mod">
+                                    <form action="" method="post">
+                                        <button type="submit"><i class="fa-solid fa-xmark"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr class="last_row">
+                                <td>5</td>
+                                <td colspan="2">لميت ليث</td>
+                                <td colspan="3"> 20-8-2022 15:09:05</td>
+                                <td colspan="2" class="mod">
+                                    <form action="" method="post">
+                                        <button type="submit"><i class="fa-solid fa-xmark"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div> -->
+        </div>
+        <script src="index.js"></script>
+    </div>
+</body>
+</html>

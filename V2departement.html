@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- main css file -->
+    <link rel="stylesheet" href="css_files/master.css">
+    <!-- font awesome -->
+    <link rel="stylesheet" href="css_files/all.min.css">
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>doctors_Dashboard</title>
+</head>
+<body>
+    <div class="page">
+        <div class="dashboard">
+            <div class="title">
+                <img class="logo" src="images/download__15__14-removebg-preview.png" alt="">
+                <h2>LOGO</h2>
+                <i class="fa-solid fa-bars toggle"></i>
+            </div>
+            <ul class="links">
+                <li>
+                    <a href="index.html">
+                        <i class="fa-solid fa-cubes fa-fw"></i>
+                        <span>Page d'accueil</span>
+                    </a>
+                </li>
+                <li class="num num1">
+                    <a class="listted" href="doctors.html">
+                        <i class="fa-solid fa-user-nurse fa-fw"></i>
+                        <span>Médecins</span>
+                        <i class="fa-solid fa-angle-right tog"></i>
+                    </a>
+                    <div class="list one" style="display: none;">
+                        <a href="doctors.html">Médecins</a>
+                        <a href="add-doctors.html">Ajouter un médecin</a>
+                    </div>
+                </li>
+                <li class="num num2">
+                    <a class="listted" href="departments.html">
+                        <i class="fa-solid fa-people-group fa-fw"></i>
+                        <span>Départements</span>
+                        <i class="fa-solid fa-angle-right tog"></i>
+                    </a>
+                    <div class="list two" style="display: block;">
+                        <a href="departments.html">Départements</a>
+                        <a href="add-department.html">Ajouter un département</a>
+                    </div>
+                </li>
+                <li>
+                    <a href="receiption.html">
+                        <i class="fa-solid fa-people-arrows fa-fw"></i>
+                        <span>Réception</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="Authentification.html">
+                        <i class="fa-solid fa-flask-vial fa-fw"></i>
+                        <span>Authentificationoratoire</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="pharmacy.html">
+                        <i class="fa-solid fa-hand-holding-medical fa-fw"></i>
+                        <span>Pharmacie</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="articles.html">
+                        <i class="fa-solid fa-file-signature fa-fw"></i>
+                        <span>Rapports</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="coments.html">
+                        <i class="fa-regular fa-comments fa-fw"></i>
+                        <span>Charts</span>
+                    </a>
+                </li>
+            </ul>
+            <form method="post" class="log-out">
+                <button type="submit" name="logout">
+                    <i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i>
+                    <span>Déconnexion</span>
+                </button>
+            </form>
+        </div>
+        <div class="content">
+            <div class="header">
+                <div class="text">
+                    <p>Bonjour Dr. Ahmed Tarek</p>
+                </div>
+                <div class="search">
+                    <form action="" method="post" class="container">
+                      <div class="search-container">
+                        <input class="input" type="search" name="search_query" placeholder="Rechercher des noms de patients">
+                        <i class="fa-solid fa-magnifying-glass search__icon"></i>
+                        <input class="s_b" type="submit" value="Rechercher">
+                      </div>
+                    </form>
+                </div>
+                <div class="profile">
+                    <img src="images/avatar.png" alt="Profile" class="avatar" id="avatar">
+                    <span class="profile-name">John Doe</span>
+                    <i class="fa-solid fa-chevron-down" id="dropdownToggle"></i>
+                    <div class="profile-dropdown" id="profileDropdown">
+                      <ul>
+                        <li><a href="profile.html">My Profile</a></li>
+                        <li><a href="settings.html">Settings</a></li>
+                        <li><form method="post"><button type="submit" name="logout">Log Out</button></form></li>
+                      </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="doctors-list department-list">
+                <table>
+                    <thead>
+                        <tr>
+                            <td colspan="2" class="tit">List Specialité</td>
+                            <td colspan="3">
+                                <form action="" method="post">
+                                    <input type="search" name="" id="" placeholder="البحث عن طبيب">
+                                    <input type="submit" class="b-s" value="بحث">
+                                </form>
+                            </td>
+                            <td colspan="3">
+                                <img src="images/download__15_-removebg-preview.png" alt="">
+                            </td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="first-row">
+                            <td>#</td>
+                            <td colspan="2">Départements</td>
+                            <td colspan="">معاد التسجيل</td>
+                            <td colspan="3">تعديل</td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td colspan="2">امراض كلى</td>
+                            <td colspan="2">25.12.2022 20:09:14</td>
+                            <td colspan="2" class="modefie">
+                                <form action="" method="post">
+                                    <button type="submit"><i class="fa-solid fa-pen"></i></button>
+                                    <button type="submit"><i class="fa-solid fa-xmark"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td colspan="2">امراض قلب</td>
+                            <td colspan="2">22.12.2022 22:10:04</td>
+                            <td colspan="2" class="modefie">
+                                <form action="" method="post">
+                                    <button type="submit"><i class="fa-solid fa-pen"></i></button>
+                                    <button type="submit"><i class="fa-solid fa-xmark"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td colspan="2">امراض معدة</td>
+                            <td colspan="2">23.12.2022 24:10:05</td>
+                            <td colspan="2" class="modefie">
+                                <form action="" method="post">
+                                    <button type="submit"><i class="fa-solid fa-pen"></i></button>
+                                    <button type="submit"><i class="fa-solid fa-xmark"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td colspan="2">أسنان</td>
+                            <td colspan="2">28.12.2022 19:15:04</td>
+                            <td colspan="2" class="modefie">
+                                <form action="" method="post">
+                                    <button type="submit"><i class="fa-solid fa-pen"></i></button>
+                                    <button type="submit"><i class="fa-solid fa-xmark"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td colspan="2">امراض دم</td>
+                            <td colspan="2">27.12.2022 15:10:04</td>
+                            <td colspan="2" class="modefie">
+                                <form action="" method="post">
+                                    <button type="submit"><i class="fa-solid fa-pen"></i></button>
+                                    <button type="submit"><i class="fa-solid fa-xmark"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td colspan="2">امراض قلب</td>
+                            <td colspan="2">20.12.2022 18:10:04</td>
+                            <td colspan="2" class="modefie">
+                                <form action="" method="post">
+                                    <button type="submit"><i class="fa-solid fa-pen"></i></button>
+                                    <button type="submit"><i class="fa-solid fa-xmark"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>7</td>
+                            <td colspan="2">امراض كلى</td>
+                            <td colspan="2">25.12.2022 20:09:14</td>
+                            <td colspan="2" class="modefie">
+                                <form action="" method="post">
+                                    <button type="submit"><i class="fa-solid fa-pen"></i></button>
+                                    <button type="submit"><i class="fa-solid fa-xmark"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>8</td>
+                            <td colspan="2">امراض قلب</td>
+                            <td colspan="2">22.12.2022 22:10:04</td>
+                            <td colspan="2" class="modefie">
+                                <form action="" method="post">
+                                    <button type="submit"><i class="fa-solid fa-pen"></i></button>
+                                    <button type="submit"><i class="fa-solid fa-xmark"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>9</td>
+                            <td colspan="2">امراض معدة</td>
+                            <td colspan="2">23.12.2022 24:10:05</td>
+                            <td colspan="2" class="modefie">
+                                <form action="" method="post">
+                                    <button type="submit"><i class="fa-solid fa-pen"></i></button>
+                                    <button type="submit"><i class="fa-solid fa-xmark"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>10</td>
+                            <td colspan="2">أسنان</td>
+                            <td colspan="2">28.12.2022 19:15:04</td>
+                            <td colspan="2" class="modefie">
+                                <form action="" method="post">
+                                    <button type="submit"><i class="fa-solid fa-pen"></i></button>
+                                    <button type="submit"><i class="fa-solid fa-xmark"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>11</td>
+                            <td colspan="2">امراض دم</td>
+                            <td colspan="2">27.12.2022 15:10:04</td>
+                            <td colspan="2" class="modefie">
+                                <form action="" method="post">
+                                    <button type="submit"><i class="fa-solid fa-pen"></i></button>
+                                    <button type="submit"><i class="fa-solid fa-xmark"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>12</td>
+                            <td colspan="2">امراض قلب</td>
+                            <td colspan="2">20.12.2022 18:10:04</td>
+                            <td colspan="2" class="modefie">
+                                <form action="" method="post">
+                                    <button type="submit"><i class="fa-solid fa-pen"></i></button>
+                                    <button type="submit"><i class="fa-solid fa-xmark"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <script src="index.js"></script>
+    </div>
+</body>
+</html>
