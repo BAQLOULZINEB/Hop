@@ -420,7 +420,6 @@ if (!empty($doctors)) {
             </div>
             <div class="main-content">
                 <div class="container">
-                    <h2>Demander un rendez-vous</h2>
                     <?php if (isset($message) && $message) echo $message; ?>
                     
                     <div class="search-container">
