@@ -2,8 +2,8 @@
 require_once '../../backend/auth/session_handler.php';
 checkRole('medecin');
 
-
-$doctor_name = htmlspecialchars($_SESSION['user']['nom']);
+// Fix: Check if user is set
+$doctor_name = isset($_SESSION['user']['nom']) ? htmlspecialchars($_SESSION['user']['nom']) : 'Utilisateur';
 ?>
 <!DOCTYPE html>
 <html dir="ltr" lang="fr">
@@ -19,7 +19,8 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <title>Doctor Dashboard</title>
+    <link rel="stylesheet" href="https://uicdn.toast.com/tui-calendar/latest/tui-calendar.css">
+    <title>Schedule - Doctor Dashboard</title>
 </head>
 <body style="background-image: url('../images/background_page.jpg'); background-color: rgba(12, 36, 54, 0.55); background-position: center; background-size: cover; background-repeat: no-repeat;">   
     <div class="page">
@@ -60,7 +61,7 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                         <span>Medical Records</span>
                     </a>
                 </li>
-                <li>
+                <li class="active">
                     <a href="schedule.php">
                         <i class="fa-solid fa-clock fa-fw"></i>
                         <span>Schedule</span>
@@ -85,8 +86,8 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                 <div class="header-left">
                     <img src="../images/download__15__14-removebg-preview.png" alt="Logo" class="header-logo">
                     <div class="welcome">
-                        <h1>Welcome Dr. <span id="doctor-name"><?php echo $doctor_name; ?></span></h1>
-                        <span class="subtitle">Doctor Dashboard</span>
+                        <h1>Schedule - Dr. <?php echo $doctor_name; ?></h1>
+                        <span class="subtitle">Manage your appointments</span>
                     </div>
                 </div>
                 <div class="header-center">
@@ -115,38 +116,19 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                 </div>
             </div>
             
-            <!-- Dashboard Statistics -->
-            <div class="details">
-                <div class="main-details">
-                    <div class="patients m-d">
-                        <i class="fa-solid fa-bed-pulse"></i>
-                        <div class="stat">
-                            <p>Today's Patients</p>
-                            <p class="number">0</p>
-                        </div>
+            <!-- Calendar Section -->
+            <div class="calendar-container">
+                <div class="calendar-controls">
+                    <div class="view-buttons">
+                        <button class="active" data-view="month">Month</button>
+                        <button data-view="week">Week</button>
+                        <button data-view="day">Day</button>
                     </div>
-                    <div class="appointments m-d">
-                        <i class="fa-solid fa-calendar-check fa-fw"></i>
-                        <div class="stat">
-                            <p>Appointments</p>
-                            <p class="number">0</p>
-                        </div>
-                    </div>
-                    <div class="prescriptions m-d">
-                        <i class="fa-solid fa-prescription fa-fw"></i>
-                        <div class="stat">
-                            <p>Prescriptions</p>
-                            <p class="number">0</p>
-                        </div>
-                    </div>
-                    <div class="messages m-d">
-                        <i class="fa-solid fa-message fa-fw"></i>
-                        <div class="stat">
-                            <p>Messages</p>
-                            <p class="number">0</p>
-                        </div>
+                    <div class="calendar-actions">
+                        <button id="addAppointment">+ New Appointment</button>
                     </div>
                 </div>
+                <div id="calendar"></div>
             </div>
 
             <!-- Today's Appointments Table -->
@@ -181,6 +163,95 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
             </div>
         </div>
     </div>
-    <script src="../index.js"></script>
+
+    <!-- Dependencies -->
+    <script src="https://uicdn.toast.com/tui.code-snippet/latest/tui-code-snippet.min.js"></script>
+    <script src="https://uicdn.toast.com/tui.dom/v3.0.0/tui-dom.js"></script>
+    <script src="https://uicdn.toast.com/tui.time-picker/latest/tui-time-picker.min.js"></script>
+    <script src="https://uicdn.toast.com/tui.date-picker/latest/tui-date-picker.min.js"></script>
+    <script src="https://uicdn.toast.com/tui-calendar/latest/tui-calendar.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const Calendar = tui.Calendar;
+            const calendar = new Calendar('#calendar', {
+                defaultView: 'month',
+                useCreationPopup: true,
+                useDetailPopup: true,
+                calendars: [
+                    {
+                        id: 'medecin',
+                        name: 'Doctor',
+                        backgroundColor: '#2c3e50'
+                    }
+                ]
+            });
+
+            // Load appointments
+            function loadAppointments() {
+                fetch('api/get_appointments.php')
+                    .then(response => response.json())
+                    .then(appointments => {
+                        calendar.clear();
+                        calendar.createSchedules(appointments);
+                    })
+                    .catch(error => console.error('Error loading appointments:', error));
+            }
+
+            // Initial load
+            loadAppointments();
+
+            // View Controls
+            document.querySelectorAll('.view-buttons button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelector('.view-buttons .active').classList.remove('active');
+                    btn.classList.add('active');
+                    calendar.changeView(btn.dataset.view);
+                });
+            });
+
+            // New Appointment
+            document.getElementById('addAppointment').addEventListener('click', () => {
+                calendar.openCreationPopup({
+                    start: new Date(),
+                    end: new Date()
+                });
+            });
+
+            // Event Handling
+            calendar.on('beforeCreateSchedule', event => {
+                const formData = new FormData();
+                formData.append('patient_id', event.schedule.raw.patient_id);
+                formData.append('date_rendezvous', event.schedule.start.toISOString());
+
+                fetch('api/save_appointment.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadAppointments();
+                    } else {
+                        alert(data.error || 'Failed to create appointment');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to create appointment');
+                });
+            });
+
+            calendar.on('beforeUpdateSchedule', event => {
+                // Handle appointment updates
+                console.log('Updating appointment:', event);
+            });
+
+            calendar.on('beforeDeleteSchedule', event => {
+                // Handle appointment deletion
+                console.log('Deleting appointment:', event);
+            });
+        });
+    </script>
 </body>
-</html>
+</html> 

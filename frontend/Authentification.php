@@ -64,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     if ($emailValidation['valid']) {
                         $_SESSION['user_id'] = $user['id'];
                         $_SESSION['role'] = $emailValidation['role'];
+                        $_SESSION['user'] = $user;
                         
                         // Redirect based on email domain
                         switch($emailValidation['role']) {

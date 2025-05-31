@@ -1,6 +1,8 @@
 <?php
 require_once '../../backend/auth/session_handler.php';
 checkRole('patient');
+
+$patient_name = htmlspecialchars($_SESSION['user']['nom']); //to get name on header 
 ?>
 <!DOCTYPE html>
 <html dir="ltr" lang="fr">
@@ -82,7 +84,7 @@ checkRole('patient');
                 <div class="header-left">
                     <img src="../images/download__15__14-removebg-preview.png" alt="Logo" class="header-logo">
                     <div class="welcome">
-                        <h1>Welcome <span id="patient-name">Patient Name</span></h1>
+                        <h1>Welcome <span id="patient-name"><?php echo $patient_name; ?></span></h1>
                         <span class="subtitle">Patient Dashboard</span>
                     </div>
                 </div>
@@ -95,7 +97,7 @@ checkRole('patient');
                 <div class="header-right">
                     <div class="profile-menu">
                         <img src="../images/avatar.jpg" alt="Profile" class="avatar">
-                        <span class="profile-name">Patient Name</span>
+                        <span class="profile-name"><?php echo $patient_name; ?></span>
                         <i class="fa-solid fa-chevron-down"></i>
                         <div class="profile-dropdown">
                             <ul>
