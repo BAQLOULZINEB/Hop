@@ -2,7 +2,6 @@
 require_once '../../backend/auth/session_handler.php';
 checkRole('medecin');
 
-
 $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
 ?>
 <!DOCTYPE html>

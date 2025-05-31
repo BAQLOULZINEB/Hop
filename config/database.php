@@ -1,4 +1,4 @@
-<?php
+s<?php
 class Database {
     private $host = "localhost";
     private $db_name = "medical_system";

@@ -52,7 +52,6 @@ checkRole('admin');
                     </a>
                     <div class="list two" style="display: none;">
                         <a href="departments.php">Voir les spécialités</a>
-                        <a href="add_department.php">Ajouter une spécialité</a>
                     </div>
                 </li>
                  <li>
@@ -62,7 +61,7 @@ checkRole('admin');
                     </a>
                 </li>
                 <li>
-                    <a href="appointments.php">
+                    <a href="rendezvous.php">
                         <i class="fa-solid fa-calendar-check fa-fw"></i>
                         <span>Rendez-vous</span>
                     </a>
