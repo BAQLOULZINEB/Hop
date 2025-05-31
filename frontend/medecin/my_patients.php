@@ -1,0 +1,297 @@
+<?php
+require_once '../../backend/auth/session_handler.php';
+checkRole('medecin');
+
+$doctor_name = htmlspecialchars($_SESSION['user']['nom']);
+?>
+<!DOCTYPE html>
+<html dir="ltr" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- main css file -->
+    <link rel="preload" href="../images/background_page.jpg" as="image">
+    <link rel="stylesheet" href="../css_files/master.css">
+    <!-- font awesome -->
+    <link rel="stylesheet" href="../css_files/all.min.css">
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Doctor Dashboard</title>
+</head>
+<body style="background-image: url('../images/background_page.jpg'); background-color: rgba(12, 36, 54, 0.55); background-position: center; background-size: cover; background-repeat: no-repeat;">   
+    <div class="page">
+        <div class="dashboard">
+            <div class="title">
+                <img class="logo" src="../images/download__15__14-removebg-preview.png" alt="">
+                <h2>HopCare</h2>
+                <i class="fa-solid fa-bars toggle"></i>
+            </div>
+            <ul class="links">
+                <li>
+                    <a href="doctor_dashboard.php">
+                        <i class="fa-solid fa-cubes fa-fw"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="my_patients.php">
+                        <i class="fa-solid fa-people-arrows fa-fw"></i>
+                        <span>My Patients</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="appointments.php">
+                        <i class="fa-solid fa-calendar-check fa-fw"></i>
+                        <span>Appointments</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="prescriptions.php">
+                        <i class="fa-solid fa-prescription fa-fw"></i>
+                        <span>Prescriptions</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="medical_records.php">
+                        <i class="fa-solid fa-file-medical fa-fw"></i>
+                        <span>Medical Records</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="schedule.php">
+                        <i class="fa-solid fa-clock fa-fw"></i>
+                        <span>Schedule</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="messages.php">
+                        <i class="fa-solid fa-message fa-fw"></i>
+                        <span>Messages</span>
+                    </a>
+                </li>
+            </ul>
+            <form method="post" class="log-out">
+                <button type="submit" name="logout">
+                    <i class="fa-solid fa-arrow-right-from-bracket fa-fw"></i>
+                    <span>Logout</span>
+                </button>
+            </form>
+        </div>
+        <div class="content">
+            <div class="header pro-header">
+                <div class="header-left">
+                    <img src="../images/download__15__14-removebg-preview.png" alt="Logo" class="header-logo">
+                    <div class="welcome">
+                        <h1>Welcome Dr. <span id="doctor-name"><?php echo $doctor_name; ?></span></h1>
+                        <span class="subtitle">Doctor Dashboard</span>
+                    </div>
+                </div>
+                <div class="header-center">
+                    <form action="" method="post" class="search-bar">
+                        <input type="search" name="search_query" placeholder="Search patients or appointments">
+                        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    </form>
+                </div>
+                <div class="header-right">
+                    <div class="profile-menu">
+                        <img src="../images/avatar.jpg" alt="Profile" class="avatar">
+                        <span class="profile-name">Dr. <?php echo $doctor_name; ?></span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                        <div class="profile-dropdown">
+                            <ul>
+                                <li><a href="profile.php">My Profile</a></li>
+                                <li><a href="settings.php">Settings</a></li>
+                                <li>
+                                    <form method="post">
+                                        <button type="submit" name="logout">Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+
+            <!-- Patients Table -->
+            <div class="illness-list">
+                <h2>Mes Patients du Jour</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Email</th>
+                            <th>Heure de RDV</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        try {
+                            $db = new PDO("mysql:host=localhost;dbname=medical_system", "root", "");
+                            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                            $db->exec("SET NAMES utf8mb4");
+                            $medecin_id = $_SESSION['user']['id'];
+                            
+                            // Get today's patients with confirmed appointments
+                            $sql = "SELECT u.id, u.nom, u.email, r.date_rendezvous
+                                    FROM rendez_vous r
+                                    JOIN patient p ON r.patient_id = p.id
+                                    JOIN utilisateur u ON p.id = u.id
+                                    WHERE r.medecin_id = :medecin_id 
+                                    AND r.statut = 'confirmé'
+                                    AND DATE(r.date_rendezvous) = CURDATE()
+                                    ORDER BY r.date_rendezvous";
+                            
+                            $stmt = $db->prepare($sql);
+                            $stmt->execute([':medecin_id' => $medecin_id]);
+                            $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            
+                            if (count($patients) === 0) {
+                                echo '<tr><td colspan="4">Aucun patient programmé pour aujourd\'hui.</td></tr>';
+                            } else {
+                                foreach ($patients as $patient) {
+                                    echo '<tr>';
+                                    echo '<td>' . htmlspecialchars($patient['nom']) . '</td>';
+                                    echo '<td>' . htmlspecialchars($patient['email']) . '</td>';
+                                    echo '<td>' . date('H:i', strtotime($patient['date_rendezvous'])) . '</td>';
+                                    echo '<td>
+                                            <button onclick="openConsultation(' . $patient['id'] . ', \'' . htmlspecialchars($patient['nom']) . '\')" class="consultation-btn">
+                                                Consultation
+                                            </button>
+                                          </td>';
+                                    echo '</tr>';
+                                }
+                            }
+                        } catch (PDOException $e) {
+                            echo '<tr><td colspan="4">Erreur : ' . htmlspecialchars($e->getMessage()) . '</td></tr>';
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Consultation Modal -->
+            <div id="consultationModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>Consultation - <span id="patientName"></span></h2>
+                    <form id="consultationForm" method="POST" action="">
+                        <input type="hidden" id="patient_id" name="patient_id">
+                        <div class="form-group">
+                            <label for="remarques">Remarques:</label>
+                            <textarea id="remarques" name="remarques" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="hospitalisation" name="hospitalisation">
+                                Hospitalisation nécessaire
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label for="next_rdv">Prochain rendez-vous:</label>
+                            <input type="date" id="next_rdv" name="next_rdv">
+                        </div>
+                        <button type="submit" name="save_consultation">Enregistrer</button>
+                    </form>
+                </div>
+            </div>
+
+            <style>
+                .modal {
+                    display: none;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0,0,0,0.5);
+                    z-index: 1000;
+                }
+                .modal-content {
+                    background-color: #fefefe;
+                    margin: 15% auto;
+                    padding: 20px;
+                    border: 1px solid #888;
+                    width: 80%;
+                    max-width: 600px;
+                    border-radius: 5px;
+                }
+                .close {
+                    color: #aaa;
+                    float: right;
+                    font-size: 28px;
+                    font-weight: bold;
+                    cursor: pointer;
+                }
+                .consultation-btn {
+                    background-color: #0e2f44;
+                    color: white;
+                    padding: 5px 10px;
+                    border: none;
+                    border-radius: 3px;
+                    cursor: pointer;
+                }
+                .form-group {
+                    margin-bottom: 15px;
+                }
+                .form-group label {
+                    display: block;
+                    margin-bottom: 5px;
+                }
+                .form-group textarea {
+                    width: 100%;
+                    min-height: 100px;
+                }
+            </style>
+
+            <script>
+                const modal = document.getElementById("consultationModal");
+                const span = document.getElementsByClassName("close")[0];
+
+                function openConsultation(patientId, patientName) {
+                    document.getElementById("patientName").textContent = patientName;
+                    document.getElementById("patient_id").value = patientId;
+                    modal.style.display = "block";
+                }
+
+                span.onclick = function() {
+                    modal.style.display = "none";
+                }
+
+                window.onclick = function(event) {
+                    if (event.target == modal) {
+                        modal.style.display = "none";
+                    }
+                }
+
+                document.getElementById("consultationForm").onsubmit = async function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(this);
+                    
+                    try {
+                        const response = await fetch('save_consultation.php', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        if (response.ok) {
+                            alert('Consultation enregistrée avec succès');
+                            modal.style.display = "none";
+                            location.reload();
+                        } else {
+                            alert('Erreur lors de l\'enregistrement');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Erreur lors de l\'enregistrement');
+                    }
+                };
+            </script>
+        </div>
+    </div>
+    <script src="../index.js"></script>
+</body>
+</html>
