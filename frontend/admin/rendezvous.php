@@ -6,15 +6,27 @@ checkRole('admin');
 try {
     $db = new PDO("mysql:host=localhost;dbname=medical_system", "root", "");
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $db->exec("SET NAMES utf8mb4");
 } catch (PDOException $e) {
     die("Erreur de connexion : " . $e->getMessage());
 }
 
 // Traitement validation/refus
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['patient_id'], $_POST['medecin_id'], $_POST['date_rendezvous'])) {
-    $action = $_POST['action'] === 'valider' ? 'confirmé' : 'refusé';
-    $stmt = $db->prepare("UPDATE rendez_vous SET statut = ? WHERE patient_id = ? AND medecin_id = ? AND date_rendezvous = ?");
-    $stmt->execute([$action, $_POST['patient_id'], $_POST['medecin_id'], $_POST['date_rendezvous']]);
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST' &&
+    isset($_POST['action'], $_POST['patient_id'], $_POST['medecin_id'], $_POST['date_rendezvous'])
+) {
+    if ($_POST['action'] === 'valider') {
+        $action = 'confirmé';
+    } elseif ($_POST['action'] === 'refuser') {
+        $action = 'annulé';
+    } else {
+        $action = null;
+    }
+    if ($action) {
+        $stmt = $db->prepare("UPDATE rendez_vous SET statut = ? WHERE patient_id = ? AND medecin_id = ? AND date_rendezvous = ?");
+        $stmt->execute([$action, $_POST['patient_id'], $_POST['medecin_id'], $_POST['date_rendezvous']]);
+    }
 }
 
 // Récupérer tous les rendez-vous
@@ -42,6 +54,92 @@ $rendezvous = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>Validation des Rendez-vous</title>
+    <style>
+        /* Only content area styles below, sidebar/header untouched */
+        body, input, select, button, label, textarea {
+            font-family: 'Montserrat', Arial, sans-serif;
+        }
+        .content {
+            margin-left: 260px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: transparent;
+        }
+        .illness-list {
+            margin: 40px auto 0 auto;
+            max-width: 1100px;
+            background: rgba(30, 44, 70, 0.85);
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+            padding: 32px 28px 24px 28px;
+        }
+        .illness-list h2 {
+            color: #fff;
+            font-size: 1.7em;
+            margin-bottom: 24px;
+            font-weight: 700;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: rgba(255,255,255,0.07);
+            border-radius: 12px;
+            overflow: hidden;
+            color: #fff;
+        }
+        thead th, thead td {
+            background: rgba(14, 47, 68, 0.95);
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.08em;
+            padding: 16px 10px;
+            border-bottom: 2px solid #1a5276;
+        }
+        tbody td {
+            padding: 14px 10px;
+            font-size: 1.08em;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            color: #fff;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        table th, table td {
+            text-align: center;
+        }
+        table tr {
+            transition: background 0.2s;
+        }
+        table tr:hover {
+            background: rgba(255,255,255,0.08);
+        }
+        button, .illness-list button {
+            background: linear-gradient(90deg, #0e2f44 60%, #1a5276 100%);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            padding: 8px 18px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(44,62,80,0.08);
+        }
+        button:hover, .illness-list button:hover {
+            background: linear-gradient(90deg, #1a5276 60%, #0e2f44 100%);
+        }
+        @media (max-width: 900px) {
+            .illness-list {
+                padding: 18px 8px;
+            }
+            table th, table td {
+                font-size: 0.98em;
+                padding: 10px 4px;
+            }
+        }
+    </style>
 </head>
 <body style="background-image: url('../images/background_page.jpg'); background-color: rgba(12, 36, 54, 0.55); background-position: center; background-size: cover; background-repeat: no-repeat;">   
     <div class="page">
@@ -139,7 +237,7 @@ $rendezvous = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <button type="submit" name="action" value="valider">Valider</button>
                                 </form>
                                 <?php endif; ?>
-                                <?php if ($rdv['statut'] !== 'refusé'): ?>
+                                <?php if ($rdv['statut'] !== 'annulé'): ?>
                                 <form method="post" style="display:inline;">
                                     <input type="hidden" name="patient_id" value="<?= $rdv['patient_id'] ?>">
                                     <input type="hidden" name="medecin_id" value="<?= $rdv['medecin_id'] ?>">
@@ -156,4 +254,4 @@ $rendezvous = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 </body>
-</html> 
+</html>

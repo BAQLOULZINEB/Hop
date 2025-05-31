@@ -66,7 +66,7 @@ if (isset($_POST['specialite'], $_POST['medecin_id'], $_POST['date_rendezvous'])
     if ($conflict->fetchColumn() > 0) {
         $message = '<div class=\'error\'>Ce créneau est déjà réservé. Veuillez choisir un autre horaire.</div>';
     } else {
-        $insert = $db->prepare("INSERT INTO rendez_vous (patient_id, medecin_id, date_rendezvous, statut) VALUES (?, ?, ?, 'en attente')");
+        $insert = $db->prepare("INSERT INTO rendez_vous (patient_id, medecin_id, date_rendezvous, statut) VALUES (?, ?, ?, 'planifié')");
         if ($insert->execute([$patient_id, $medecin_id, $date_rendezvous])) {
             $message = '<div class=\'success\'>Votre demande de rendez-vous a été envoyée avec succès.</div>';
         } else {
@@ -626,4 +626,4 @@ if (!empty($doctors)) {
     </script>
     <script src="../index.js"></script>
 </body>
-</html> 
+</html>
