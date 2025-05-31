@@ -271,34 +271,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_doctor'])) {
                     </div>
                 </li>
                 <li class="num num2">
-                    <a class="listted" href="departments.php">
+                    <a  href="departments.php">
                         <i class="fa-solid fa-people-group fa-fw"></i>
-                        <span>Spécialités</span>
-                        <i class="fa-solid fa-angle-right tog"></i>
+                        <span>Spécialités</span>  
                     </a>
-                    <div class="list two" style="display: none;">
-                        <a href="departments.php">Voir les spécialités</a>
-                        <a href="add_department.php">Ajouter une spécialité</a>
-                    </div>
+                    
                 </li>
-                 <li>
-                    <a href="patients.php">
+                <li class="num num3">
+                    <a class="listted" href="#">
                         <i class="fa-solid fa-people-arrows fa-fw"></i>
                         <span>Patients</span>
+                        <i class="fa-solid fa-angle-right tog"></i>
                     </a>
+                    <div class="list three" style="display: none;">
+                        <a href="patients.php">Voir les patients</a>
+                        <a href="add_patient.php">Ajouter un patient</a>
+                    </div>
                 </li>
                 <li>
-                    <a href="appointments.php">
+                    <a href="rendezvous.php">
                         <i class="fa-solid fa-calendar-check fa-fw"></i>
                         <span>Rendez-vous</span>
                     </a>
                 </li>
-                <li>
-                    <a href="pharmacy.php">
-                        <i class="fa-solid fa-hand-holding-medical fa-fw"></i>
-                        <span>Pharmacie</span>
-                    </a>
-                </li>
+               
                 <li>
                     <a href="reports.php">
                         <i class="fa-solid fa-file-signature fa-fw"></i>

@@ -57,6 +57,11 @@ try {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>Admin Dashboard</title>
+    <style>
+        .details {
+            margin-top: 30px;
+        }
+    </style>
 </head>
 <body style="background-image: url('../images/background_page.jpg'); background-color: rgba(12, 36, 54, 0.55); background-position: center; background-size: cover; background-repeat: no-repeat;">   
     <div class="page">
@@ -85,14 +90,11 @@ try {
                     </div>
                 </li>
                 <li class="num num2">
-                    <a class="listted" href="departments.php">
+                    <a  href="departments.php">
                         <i class="fa-solid fa-people-group fa-fw"></i>
-                        <span>Spécialités</span>
-                        <i class="fa-solid fa-angle-right tog"></i>
+                        <span>Spécialités</span>  
                     </a>
-                    <div class="list two" style="display: none;">
-                        <a href="departments.php">Voir les spécialités</a>
-                    </div>
+                    
                 </li>
                 <li class="num num3">
                     <a class="listted" href="#">
@@ -111,12 +113,7 @@ try {
                         <span>Rendez-vous</span>
                     </a>
                 </li>
-                <li>
-                    <a href="pharmacy.php">
-                        <i class="fa-solid fa-hand-holding-medical fa-fw"></i>
-                        <span>Pharmacie</span>
-                    </a>
-                </li>
+               
                 <li>
                     <a href="reports.php">
                         <i class="fa-solid fa-file-signature fa-fw"></i>

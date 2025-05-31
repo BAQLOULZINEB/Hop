@@ -375,17 +375,13 @@ try {
                     </div>
                 </li>
                 <li class="num num2">
-                    <a class="listted" href="departments.php">
+                    <a  href="departments.php">
                         <i class="fa-solid fa-people-group fa-fw"></i>
-                        <span>Spécialités</span>
-                        <i class="fa-solid fa-angle-right tog"></i>
+                        <span>Spécialités</span>  
                     </a>
-                    <div class="list two" style="display: none;">
-                        <a href="departments.php">Voir les spécialités</a>
-                    </div>
                 </li>
                 <li class="num num3">
-                    <a class="listted" href="patients.php">
+                    <a class="listted" href="#">
                         <i class="fa-solid fa-people-arrows fa-fw"></i>
                         <span>Patients</span>
                         <i class="fa-solid fa-angle-right tog"></i>
@@ -402,18 +398,12 @@ try {
                     </a>
                 </li>
                 <li>
-                    <a href="pharmacy.php">
-                        <i class="fa-solid fa-hand-holding-medical fa-fw"></i>
-                        <span>Pharmacie</span>
-                    </a>
-                </li>
-                <li>
                     <a href="reports.php">
                         <i class="fa-solid fa-file-signature fa-fw"></i>
                         <span>Rapports</span>
                     </a>
                 </li>
-                <li>
+                 <li>
                     <a href="charts.php">
                         <i class="fa-regular fa-comments fa-fw"></i>
                         <span>Charts</span>
