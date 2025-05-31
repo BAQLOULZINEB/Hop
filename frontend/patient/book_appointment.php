@@ -168,6 +168,11 @@ if (!empty($doctors)) {
             overflow-y: auto;
             padding: 20px;
             background: transparent;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
         }
         .container {
             max-width: 1100px;
@@ -418,7 +423,7 @@ if (!empty($doctors)) {
                     </div>
                 </div>
             </div>
-            <div class="main-content">
+            <div class="main-content" style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 80vh;">
                 <div class="container">
                     <?php if (isset($message) && $message) echo $message; ?>
                     

@@ -2,44 +2,48 @@
 require_once '../../backend/auth/session_handler.php';
 checkRole('admin');
 
-// Database connection
-try {
-    $db = new PDO("mysql:host=localhost;dbname=medical_system", "root", "");
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    
-    // Get total patients count
-    $query = "SELECT COUNT(*) as total FROM patient";
-    $stmt = $db->query($query);
-    $totalPatients = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
-    // Get total doctors count
-    $query = "SELECT COUNT(*) as total FROM medecin";
-    $stmt = $db->query($query);
-    $totalDoctors = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
-    // Get total departments count (specialties)
-    $query = "SELECT COUNT(DISTINCT specialite) as total FROM medecin";
-    $stmt = $db->query($query);
-    $totalDepartments = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
-    // Get total appointments count
-    $query = "SELECT COUNT(*) as total FROM rendez_vous";
-    $stmt = $db->query($query);
-    $totalAppointments = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
-    // Get recent activities (last 5 appointments)
-    $query = "SELECT rv.*, u.nom as patient_name, m.nom as doctor_name 
-              FROM rendez_vous rv 
-              JOIN utilisateur u ON rv.patient_id = u.id 
-              JOIN medecin m ON rv.medecin_id = m.id 
-              ORDER BY rv.date_rendezvous DESC 
-              LIMIT 5";
-    $stmt = $db->query($query);
-    $recentActivities = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-} catch(PDOException $e) {
-    // Handle database error
-    $error = 'Database error: ' . $e->getMessage();
+$error = '';
+$success = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        $db = new PDO("mysql:host=localhost;dbname=medical_system", "root", "");
+        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        
+        // Start transaction
+        $db->beginTransaction();
+        
+        // Insert into utilisateur table first
+        $query = "INSERT INTO utilisateur (nom, email, mot_de_passe, role) VALUES (:nom, :email, :password, 'patient')";
+        $stmt = $db->prepare($query);
+        $stmt->execute([
+            ':nom' => $_POST['nom'],
+            ':email' => $_POST['email'],
+            ':password' => password_hash($_POST['password'], PASSWORD_DEFAULT)
+        ]);
+        
+        $user_id = $db->lastInsertId();
+        
+        // Insert into patient table
+        $query = "INSERT INTO patient (id, date_naissance, adresse) 
+                 VALUES (:id, :date_naissance, :adresse)";
+        $stmt = $db->prepare($query);
+        $stmt->execute([
+            ':id' => $user_id,
+            ':date_naissance' => $_POST['date_naissance'],
+            ':adresse' => $_POST['adresse']
+        ]);
+        
+        // Commit transaction
+        $db->commit();
+        
+        $success = "Patient added successfully!";
+        
+    } catch(PDOException $e) {
+        // Rollback transaction on error
+        $db->rollBack();
+        $error = 'Error adding patient: ' . $e->getMessage();
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -47,16 +51,78 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- main css file -->
     <link rel="preload" href="../images/background_page.jpg" as="image">
+    <title>Admin - Add Patient</title>
     <link rel="stylesheet" href="../css_files/master.css">
-    <!-- font awesome -->
     <link rel="stylesheet" href="../css_files/all.min.css">
-    <!-- fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <title>Admin Dashboard</title>
+    <style>
+        /* Form only, ne touche pas à la structure globale du dashboard/header */
+        .add-patient .forms input {
+            border: 1px solid black;
+            height: 30px;
+        }
+        .add-patient .forms form div {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .add-patient .forms form div label {
+            font-weight: bold;
+            color: white;
+            margin-bottom: 0;
+            width: 180px;
+            transition: color 0.3s ease;
+            margin-right: 15px;
+            text-align: left;
+            flex-shrink: 0;
+        }
+        .add-patient .forms form div input[type="text"],
+        .add-patient .forms form div input[type="email"],
+        .add-patient .forms form div input[type="password"],
+        .add-patient .forms form div input[type="date"] {
+            flex-grow: 1;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            margin-bottom: 0;
+            font-size: 16px;
+            background-color: rgba(255, 255, 255, 0.8);
+            color: #333;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            height: 35px;
+            line-height: 1.5;
+        }
+        .add-patient .forms form div input[type="text"]:focus,
+        .add-patient .forms form div input[type="email"]:focus,
+        .add-patient .forms form div input[type="password"]:focus,
+        .add-patient .forms form div input[type="date"]:focus {
+            outline: none;
+            border-color: #0e2f44;
+            box-shadow: 0 0 5px rgba(14, 47, 68, 0.5);
+        }
+        .add-patient .forms form .save-button {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        .add-patient .forms form .save-button button {
+            width: 150px;
+            padding: 10px 20px;
+            border: none;
+            background-color: #0e2f44;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 16px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .add-patient .forms form .save-button button:hover {
+            background-color: #1a5276;
+        }
+    </style>
 </head>
 <body style="background-image: url('../images/background_page.jpg'); background-color: rgba(12, 36, 54, 0.55); background-position: center; background-size: cover; background-repeat: no-repeat;">   
     <div class="page">
@@ -95,7 +161,7 @@ try {
                     </div>
                 </li>
                 <li class="num num3">
-                    <a class="listted" href="#">
+                    <a class="listted" href="patients.php">
                         <i class="fa-solid fa-people-arrows fa-fw"></i>
                         <span>Patients</span>
                         <i class="fa-solid fa-angle-right tog"></i>
@@ -123,7 +189,7 @@ try {
                         <span>Rapports</span>
                     </a>
                 </li>
-                 <li>
+                <li>
                     <a href="charts.php">
                         <i class="fa-regular fa-comments fa-fw"></i>
                         <span>Charts</span>
@@ -148,15 +214,9 @@ try {
                 <div class="header-left">
                     <img src="../images/download__15__14-removebg-preview.png" alt="Logo" class="header-logo">
                     <div class="welcome">
-                        <h1>Welcome Admin</h1>
-                        <span class="subtitle">Hospital Management Dashboard</span>
+                        <h1>Ajouter un patient</h1>
+                        <span class="subtitle">Créer un nouveau compte patient</span>
                     </div>
-                </div>
-                <div class="header-center">
-                    <form action="" method="post" class="search-bar">
-                        <input type="search" name="search_query" placeholder="Search patients, doctors, or departments">
-                        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
-                    </form>
                 </div>
                 <div class="header-right">
                     <div class="profile-menu">
@@ -177,87 +237,46 @@ try {
                     </div>
                 </div>
             </div>
-            
-            <!-- Dashboard Statistics -->
-            <div class="details">
-                <div class="main-details">
-                    <div class="illnes m-d">
-                        <i class="fa-solid fa-bed-pulse"></i>
-                        <div class="stat">
-                            <p>Total Patients</p>
-                            <p class="number"><?php echo isset($totalPatients) ? $totalPatients : '0'; ?></p>
+            <div class="add-patient">
+                <div class="forms">
+                    <?php if ($error): ?>
+                        <div class="error-message">
+                            <?php echo htmlspecialchars($error); ?>
                         </div>
-                    </div>
-                    <div class="doctors m-d">
-                        <i class="fa-solid fa-user-nurse fa-fw"></i>
-                        <div class="stat">
-                            <p>Total Doctors</p>
-                            <p class="number"><?php echo isset($totalDoctors) ? $totalDoctors : '0'; ?></p>
+                    <?php endif; ?>
+                    <?php if ($success): ?>
+                        <div class="success-message">
+                            <?php echo htmlspecialchars($success); ?>
                         </div>
-                    </div>
-                    <div class="departments m-d">
-                        <i class="fa-solid fa-people-group fa-fw"></i>
-                        <div class="stat">
-                            <p>Departments</p>
-                            <p class="number"><?php echo isset($totalDepartments) ? $totalDepartments : '0'; ?></p>
+                    <?php endif; ?>
+                    <form method="POST" action="">
+                        <div>
+                            <label for="nom">Nom complet</label>
+                            <input type="text" id="nom" name="nom" required>
                         </div>
-                    </div>
-                    <div class="appointments m-d">
-                        <i class="fa-solid fa-calendar-check fa-fw"></i>
-                        <div class="stat">
-                            <p>Appointments</p>
-                            <p class="number"><?php echo isset($totalAppointments) ? $totalAppointments : '0'; ?></p>
+                        <div>
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
                         </div>
-                    </div>
+                        <div>
+                            <label for="password">Mot de passe</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+                        <div>
+                            <label for="date_naissance">Date de naissance</label>
+                            <input type="date" id="date_naissance" name="date_naissance" required>
+                        </div>
+                        <div>
+                            <label for="adresse">Adresse</label>
+                            <input type="text" id="adresse" name="adresse" required>
+                        </div>
+                        <div class="save-button">
+                            <button type="submit">
+                                <i class="fa-solid fa-plus"></i> Ajouter le patient
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </div>
-
-            <!-- Recent Activities Table -->
-            <div class="illness-list">
-                <table>
-                    <thead>
-                        <tr>
-                            <td colspan="2">Recent Activities</td>
-                            <td id="search" colspan="3">
-                                <form action="" method="post">
-                                    <input type="search" name="search" placeholder="Search activities">
-                                    <input class="b-s" type="submit" value="Search">
-                                </form>
-                            </td>
-                            <td id="logo" colspan="2">
-                                <img src="../images/download__15_-removebg-preview.png" alt="">
-                            </td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Activity</td>
-                            <td>User</td>
-                            <td>Date</td>
-                            <td>Time</td>
-                            <td>Status</td>
-                            <td colspan="2">Details</td>
-                        </tr>
-                        <?php if (isset($recentActivities) && !empty($recentActivities)): ?>
-                            <?php foreach ($recentActivities as $activity): ?>
-                                <tr>
-                                    <td>Appointment</td>
-                                    <td><?php echo htmlspecialchars($activity['patient_name']); ?></td>
-                                    <td><?php echo date('Y-m-d', strtotime($activity['date_rendezvous'])); ?></td>
-                                    <td><?php echo date('H:i', strtotime($activity['date_rendezvous'])); ?></td>
-                                    <td><?php echo htmlspecialchars($activity['statut']); ?></td>
-                                    <td colspan="2">
-                                        <a href="rendezvous.php?id=<?php echo $activity['patient_id']; ?>" class="view-btn">View Details</a>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="7">No recent activities found</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
             </div>
         </div>
     </div>
@@ -288,4 +307,4 @@ try {
         });
     </script>
 </body>
-</html> 
+</html>
