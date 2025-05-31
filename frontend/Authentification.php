@@ -45,32 +45,80 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $email = $_POST['email'];
         $password = $_POST['password'];
 
+        // First check if email exists in database
         $stmt = $pdo->prepare("SELECT * FROM utilisateur WHERE email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
-        if ($user && password_verify($password, $user['mot_de_passe'])) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['role'] = $user['role'];
+        if ($user) {
+            // Debug information
+            error_log("Stored password hash: " . $user['mot_de_passe']);
+            error_log("Input password: " . $password);
             
-            // Redirect based on role
-            switch($user['role']) {
-                case 'admin':
-                    header('Location: ../admin/dashboard.php');
-                    break;
-                case 'medecin':
-                    header('Location: ../medecin/dashboard.php');
-                    break;
-                case 'patient':
-                    header('Location: ../patient/dashboard.php');
-                    break;
+            // Check if the stored password is already hashed
+            if (strlen($user['mot_de_passe']) < 60) {
+                // If password is not hashed, compare directly
+                if ($password === $user['mot_de_passe']) {
+                    // Password matches, now determine role from email domain
+                    $emailValidation = validateEmail($email);
+                    if ($emailValidation['valid']) {
+                        $_SESSION['user_id'] = $user['id'];
+                        $_SESSION['role'] = $emailValidation['role'];
+                        
+                        // Redirect based on email domain
+                        switch($emailValidation['role']) {
+                            case 'admin':
+                                header('Location: ../frontend/admin/admin_dashboard.php');
+                                break;
+                            case 'medecin':
+                                header('Location: ../frontend/medecin/doctor_dashboard.php');
+                                break;
+                            case 'patient':
+                                header('Location: ../frontend/patient/patient_dashboard.php');
+                                break;
+                        }
+                        exit();
+                    }
+                }
+            } else {
+                // If password is hashed, use password_verify
+                if (password_verify($password, $user['mot_de_passe'])) {
+                    // Password is correct, now determine role from email domain
+                    $emailValidation = validateEmail($email);
+                    if ($emailValidation['valid']) {
+                        $_SESSION['user_id'] = $user['id'];
+                        $_SESSION['role'] = $emailValidation['role'];
+                        
+                        // Redirect based on email domain
+                        switch($emailValidation['role']) {
+                            case 'admin':
+                                header('Location: ../frontend/admin/admin_dashboard.php');
+                                break;
+                            case 'medecin':
+                                header('Location: ../frontend/medecin/doctor_dashboard.php');
+                                break;
+                            case 'patient':
+                                header('Location: ../frontend/patient/patient_dashboard.php');
+                                break;
+                        }
+                        exit();
+                    }
+                }
             }
+            
+            // If we get here, either password was wrong or email format was invalid
+            if (!validateEmail($email)['valid']) {
+                $_SESSION['error'] = "Invalid email format. Please use @admin.com for admin, @med.com for doctor, or @pat.com for patient";
+            } else {
+                $_SESSION['error'] = "Invalid password";
+            }
+            header('Location: Authentification.php');
             exit();
         } else {
-            $_SESSION['error'] = "Invalid email or password";
+            $_SESSION['error'] = "Email not found in database";
+            header('Location: Authentification.php');
+            exit();
         }
-        header('Location: Authentification.php');
-        exit();
     } elseif (isset($_POST['signup'])) {
         $email = $_POST['email'];
         $password = $_POST['password'];
@@ -450,24 +498,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             border: 1px solid #008000;
         }
         .email-hint {
-            font-size: 12px;
-            color: #000;
-            margin-top: 5px;
-            padding: 5px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 5px;
             position: absolute;
-            right: calc(-150px - 10px);
-            top: 0;
-            width: 150px;
-            z-index: 10;
+            right: -220px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            width: 200px;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 1000;
         }
 
-        /* Show hint on hover of the parent field */
-        .form-inner form .field:hover .email-hint {
+        .email-hint::before {
+            content: '';
+            position: absolute;
+            left: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent rgba(0, 0, 0, 0.8) transparent transparent;
+        }
+
+        .form-inner form .field:hover .email-hint,
+        .form-inner form .field input:focus + .email-hint {
             opacity: 1;
             visibility: visible;
         }

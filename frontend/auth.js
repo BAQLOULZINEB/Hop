@@ -33,22 +33,18 @@ function showError(input, message) {
     const field = input.parentElement;
     const errorDiv = field.querySelector('.error-message') || document.createElement('div');
     errorDiv.className = 'error-message';
-    errorDiv.textContent = message;
+    errorDiv.innerHTML = message;
     errorDiv.style.color = '#ff4444';
     errorDiv.style.fontSize = '14px';
     errorDiv.style.marginTop = '5px';
     errorDiv.style.marginLeft = '10px';
     errorDiv.style.textAlign = 'left';
     errorDiv.style.fontWeight = 'bold';
-    
-    field.style.position = 'relative';
-    errorDiv.style.position = 'absolute';
-    errorDiv.style.bottom = '-20px';
-    errorDiv.style.left = '10px';
-    errorDiv.style.width = 'calc(100% - 20px)';
-    errorDiv.style.whiteSpace = 'nowrap';
-    errorDiv.style.overflow = 'hidden';
-    errorDiv.style.textOverflow = 'ellipsis';
+    errorDiv.style.position = 'static';
+    errorDiv.style.width = 'auto';
+    errorDiv.style.whiteSpace = 'normal';
+    errorDiv.style.overflow = 'visible';
+    errorDiv.style.textOverflow = 'unset';
 
     if (!field.querySelector('.error-message')) {
         field.appendChild(errorDiv);
@@ -129,15 +125,29 @@ signupForm.addEventListener('submit', function(e) {
     }
 });
 
-// Validation en temps réel
-function setupRealTimeValidation(inputs) {
+// Only apply custom domain check for signup form
+function setupRealTimeValidation(inputs, isSignup = false) {
     inputs.forEach(input => {
         input.addEventListener('input', function() {
             clearError(input);
-            const type = input.type === 'password' ? 'password' : 'email';
-            const validation = validateField(input, type);
-            
-            if (!validation.isValid) {
+            let type = input.type === 'password' ? 'password' : 'email';
+            let validation = validateField(input, type);
+
+            if (
+                isSignup &&
+                input.name === 'email'
+            ) {
+                const value = input.value.trim();
+                // Show the error as soon as there's an @ and the domain is not allowed
+                if (value.includes('@') && !isAllowedDomain(value)) {
+                    showError(
+                        input,
+                        "Invalid email format. Please use <b>@admin.com</b> for admin, <b>@med.com</b> for doctor, or <b>@pat.com</b> for patient"
+                    );
+                } else if (!validation.isValid) {
+                    showError(input, validation.errorMessage);
+                }
+            } else if (!validation.isValid) {
                 showError(input, validation.errorMessage);
             }
         });
@@ -146,7 +156,7 @@ function setupRealTimeValidation(inputs) {
             clearError(input);
             const type = input.type === 'password' ? 'password' : 'email';
             const validation = validateField(input, type);
-            
+
             if (!validation.isValid) {
                 showError(input, validation.errorMessage);
             }
@@ -154,9 +164,9 @@ function setupRealTimeValidation(inputs) {
     });
 }
 
-// Appliquer la validation en temps réel aux deux formulaires
-setupRealTimeValidation(loginInputs);
-setupRealTimeValidation(signupInputs);
+// Apply to login and signup separately
+setupRealTimeValidation(loginInputs, false);
+setupRealTimeValidation(signupInputs, true);
 
 // Gestion des erreurs de serveur
 function handleServerError(error) {
@@ -216,4 +226,12 @@ function handleServerError(error) {
     setTimeout(() => {
         errorNotification.remove();
     }, 5000);
+}
+
+function isAllowedDomain(email) {
+    return (
+        email.endsWith('@admin.com') ||
+        email.endsWith('@med.com') ||
+        email.endsWith('@pat.com')
+    );
 } 

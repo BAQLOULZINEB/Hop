@@ -1,0 +1,30 @@
+#include <Arduino.h>
+  const int TEMP_SENSOR_PIN = 35; // Pin pour le capteur LM35
+  
+  void setup() {
+    Serial.begin(9600);
+    pinMode(32, INPUT); // LO- sur GPIO32
+    pinMode(33, INPUT); // LO+ sur GPIO33
+    pinMode(TEMP_SENSOR_PIN, INPUT); // Configuration du pin pour le LM35
+  }
+  
+  void loop() {
+    // Lecture de la température
+    int tempRaw = analogRead(TEMP_SENSOR_PIN);
+    float tempC = (tempRaw * 3.3 / 4095.0) * 100.0; // Conversion en Celsius
+    
+    // Lecture du signal cardiaque
+    int signal;
+    if ((digitalRead(32) == 1) || (digitalRead(33) == 1)) {
+      signal = -500; // Indicateur pour électrode déconnectée pour le plotter
+    } else {
+      signal = analogRead(34); // Signal cardiaque
+    }
+    
+    // Affichage des données pour le plotter (Température, Signal cardiaque)
+    Serial.print(tempC);
+    Serial.print(",");
+    Serial.println(signal);
+    
+    delay(1000); // Attente d'une seconde entre les lectures
+  }

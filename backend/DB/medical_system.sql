@@ -1,3 +1,5 @@
+<?php
+$sql = file_get_contents(__DIR__ . '/medical_system.sql');
 -- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
