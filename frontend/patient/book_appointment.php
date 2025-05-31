@@ -79,20 +79,25 @@ if (isset($_POST['specialite'], $_POST['medecin_id'], $_POST['date_rendezvous'])
 $doctors = [];
 $filter_nom = isset($_POST['filter_nom']) ? trim($_POST['filter_nom']) : '';
 $specialite = isset($_POST['specialite']) ? trim($_POST['specialite']) : '';
+$filter_stars = isset($_POST['filter_stars']) ? (int)$_POST['filter_stars'] : 0;
 
-$sql = "SELECT m.id, u.nom, m.specialite FROM medecin m JOIN utilisateur u ON m.id = u.id WHERE 1=1";
+$sql = "SELECT m.id, u.nom, m.specialite, (
+    SELECT AVG(note) FROM recommendation r WHERE r.medecin_id = m.id
+) as avg_note FROM medecin m JOIN utilisateur u ON m.id = u.id WHERE 1=1";
 $params = [];
 
 if ($specialite !== '') {
     $sql .= " AND m.specialite = ?";
     $params[] = $specialite;
 }
-
 if ($filter_nom !== '') {
     $sql .= " AND u.nom LIKE ?";
     $params[] = $filter_nom . "%";
 }
-
+if ($filter_stars > 0) {
+    $sql .= " HAVING (avg_note >= ? OR avg_note IS NULL)";
+    $params[] = $filter_stars;
+}
 $sql .= " ORDER BY u.nom";
 $stmt = $db->prepare($sql);
 $stmt->execute($params);
@@ -261,7 +266,7 @@ if (!empty($doctors)) {
         }
         .stars .star.selected,
         .stars .star.hovered {
-            color: #ffb400;
+            color:rgb(255, 201, 85);
             transform: scale(1.18);
             text-shadow: 0 2px 8px #ffeaa7;
         }
@@ -394,12 +399,6 @@ if (!empty($doctors)) {
                         <span class="subtitle">Demander un rendez-vous</span>
                     </div>
                 </div>
-                <div class="header-center">
-                    <form action="" method="post" class="search-bar">
-                        <input type="search" name="search_query" placeholder="Search appointments or records">
-                        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
-                    </form>
-                </div>
                 <div class="header-right">
                     <div class="profile-menu">
                         <img src="../images/avatar.jpg" alt="Profile" class="avatar">
@@ -453,6 +452,17 @@ if (!empty($doctors)) {
                                            value="<?php echo htmlspecialchars($filter_nom); ?>"
                                            autocomplete="off">
                                     <span class="loading">Recherche en cours...</span>
+                                </div>
+                                <div class="search-field">
+                                    <label for="filter_stars">Note minimale :</label>
+                                    <select name="filter_stars" id="filter_stars">
+                                        <option value="0" <?php if($filter_stars==0) echo 'selected'; ?>>Toutes</option>
+                                        <option value="1" <?php if($filter_stars==1) echo 'selected'; ?>>1+ ★</option>
+                                        <option value="2" <?php if($filter_stars==2) echo 'selected'; ?>>2+ ★★</option>
+                                        <option value="3" <?php if($filter_stars==3) echo 'selected'; ?>>3+ ★★★</option>
+                                        <option value="4" <?php if($filter_stars==4) echo 'selected'; ?>>4+ ★★★★</option>
+                                        <option value="5" <?php if($filter_stars==5) echo 'selected'; ?>>5 ★★★★★</option>
+                                    </select>
                                 </div>
                             </div>
                         </form>
@@ -514,49 +524,52 @@ if (!empty($doctors)) {
         </div>
     </div>
     <script>
-    // Dynamic star rating for each doctor card
-    document.querySelectorAll('.stars-input').forEach(function(starInput) {
-        const stars = starInput.querySelectorAll('.star');
-        const hiddenInput = starInput.querySelector('input[type="hidden"][name="note"]');
-        const valueDisplay = starInput.querySelector('.stars-value');
-        let selected = 0;
-        stars.forEach((star, idx) => {
-            star.addEventListener('mouseenter', function() {
-                highlightStars(idx+1);
-                if (valueDisplay) valueDisplay.textContent = (idx+1) + ' / 5';
+    function initStarRatings() {
+        document.querySelectorAll('.stars-input').forEach(function(starInput) {
+            const stars = starInput.querySelectorAll('.star');
+            const hiddenInput = starInput.querySelector('input[type="hidden"][name="note"]');
+            const valueDisplay = starInput.querySelector('.stars-value');
+            let selected = 0;
+            stars.forEach((star, idx) => {
+                star.addEventListener('mouseenter', function() {
+                    highlightStars(idx+1);
+                    if (valueDisplay) valueDisplay.textContent = (idx+1) + ' / 5';
+                });
+                star.addEventListener('mouseleave', function() {
+                    highlightStars(selected);
+                    if (valueDisplay) valueDisplay.textContent = selected ? (selected + ' / 5') : '';
+                });
+                star.addEventListener('click', function() {
+                    selected = idx+1;
+                    hiddenInput.value = selected;
+                    highlightStars(selected);
+                    if (valueDisplay) valueDisplay.textContent = selected + ' / 5';
+                });
             });
-            star.addEventListener('mouseleave', function() {
-                highlightStars(selected);
-                if (valueDisplay) valueDisplay.textContent = selected ? (selected + ' / 5') : '';
-            });
-            star.addEventListener('click', function() {
-                selected = idx+1;
+            starInput.addEventListener('click', function(e) {
+                if (e.target.classList.contains('star')) return;
+                const rect = starInput.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const percent = x / rect.width;
+                const n = Math.ceil(percent * 5);
+                selected = Math.min(Math.max(n, 1), 5);
                 hiddenInput.value = selected;
                 highlightStars(selected);
                 if (valueDisplay) valueDisplay.textContent = selected + ' / 5';
             });
+            function highlightStars(n) {
+                stars.forEach((star, i) => {
+                    if (i < n) {
+                        star.classList.add('selected');
+                    } else {
+                        star.classList.remove('selected');
+                    }
+                });
+            }
         });
-        starInput.addEventListener('click', function(e) {
-            if (e.target.classList.contains('star')) return;
-            const rect = starInput.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const percent = x / rect.width;
-            const n = Math.ceil(percent * 5);
-            selected = Math.min(Math.max(n, 1), 5);
-            hiddenInput.value = selected;
-            highlightStars(selected);
-            if (valueDisplay) valueDisplay.textContent = selected + ' / 5';
-        });
-        function highlightStars(n) {
-            stars.forEach((star, i) => {
-                if (i < n) {
-                    star.classList.add('selected');
-                } else {
-                    star.classList.remove('selected');
-                }
-            });
-        }
-    });
+    }
+    // Call on page load
+    initStarRatings();
 
     // Real-time search functionality
     let searchTimeout;
@@ -564,6 +577,7 @@ if (!empty($doctors)) {
     const filterInput = document.getElementById('filter_nom');
     const specialiteInput = document.getElementById('specialite');
     const loadingIndicator = document.querySelector('.loading');
+    const filterStarsInput = document.getElementById('filter_stars');
 
     function performSearch() {
         loadingIndicator.classList.add('active');
@@ -584,6 +598,8 @@ if (!empty($doctors)) {
             const newDoctorsList = doc.getElementById('doctorsList');
             document.getElementById('doctorsList').innerHTML = newDoctorsList.innerHTML;
             loadingIndicator.classList.remove('active');
+            // Re-initialize star ratings after AJAX update
+            initStarRatings();
         })
         .catch(error => {
             console.error('Error:', error);
@@ -599,6 +615,11 @@ if (!empty($doctors)) {
     specialiteInput.addEventListener('change', function() {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(performSearch, 300);
+    });
+
+    filterStarsInput.addEventListener('change', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(performSearch, 100);
     });
 
     // Add placeholder text to show search behavior
