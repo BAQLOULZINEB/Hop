@@ -90,7 +90,7 @@ if ($specialite !== '') {
 
 if ($filter_nom !== '') {
     $sql .= " AND u.nom LIKE ?";
-    $params[] = "%$filter_nom%";
+    $params[] = $filter_nom . "%";
 }
 
 $sql .= " ORDER BY u.nom";
@@ -130,12 +130,97 @@ if (!empty($doctors)) {
         body, input, select, button, label, textarea {
             font-family: 'Montserrat', Arial, sans-serif;
         }
-        .container { max-width: 1100px; margin: 40px auto 0 auto; }
-        label {
+        .page {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .dashboard {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 1000;
+        }
+        .content {
+            flex: 1;
+            margin-left: 260px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: transparent;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .search-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            position: sticky;
+            top: 20px;
+            z-index: 90;
+        }
+        .search-row {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        .search-field {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+        .search-field label {
+            display: block;
+            margin-bottom: 10px;
             color: #0e2f44;
             font-weight: 600;
             font-size: 1.08em;
-            margin-bottom: 6px;
+        }
+        .search-field input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #bbb;
+            border-radius: 8px;
+            font-size: 1.1em;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background: white;
+        }
+        .search-field input:focus {
+            border-color: #0e2f44;
+            box-shadow: 0 0 0 3px rgba(14, 47, 68, 0.1);
+            outline: none;
+        }
+        .loading {
+            display: none;
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 0.98em;
+        }
+        .loading.active {
             display: inline-block;
         }
         .doctor-card {
@@ -146,10 +231,11 @@ if (!empty($doctors)) {
             background: #fff;
             transition: box-shadow 0.3s, transform 0.3s;
             position: relative;
-            min-width: 400px;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
+            width: 100%;
+            min-width: unset;
+            max-width: unset;
+            margin-left: 0;
+            margin-right: 0;
         }
         .doctor-card:hover {
             box-shadow: 0 8px 32px rgba(44,62,80,0.18);
@@ -235,75 +321,17 @@ if (!empty($doctors)) {
         .success { background: #eafaf1; color: #27ae60; border: 1.5px solid #27ae60; }
         .error { background: #fff6f6; color: #c0392b; border: 1.5px solid #c0392b; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px);} to { opacity: 1; transform: none; } }
-        @media (max-width: 900px) {
-            .container { padding: 0 8px; }
-            .doctor-card { padding: 18px 8px; min-width: unset; }
-            .doctor-card input[type="text"],
-            .doctor-card input[type="datetime-local"] { width: 100%; min-width: unset; }
-        }
-        /* Label and input for specialty and filter */
-        form label[for="specialite"], form label[for="filter_nom"] {
-            font-size: 1.13em;
-            color: #0e2f44;
-            font-weight: 700;
-        }
-        form input[type="text"], form input[list] {
-            width: 340px;
-            max-width: 100%;
-            font-size: 1.08em;
-            padding: 10px 16px;
-            border-radius: 7px;
-            border: 1.5px solid #bbb;
-            margin-bottom: 8px;
-        }
-        form button[type="submit"] {
-            padding: 10px 24px;
-            font-size: 1.08em;
-            border-radius: 7px;
-        }
-        .search-container {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        .search-row {
-            display: flex;
-            gap: 20px;
-            align-items: flex-end;
-            flex-wrap: wrap;
-        }
-        .search-field {
-            flex: 1;
-            min-width: 250px;
-        }
-        .search-field label {
-            display: block;
-            margin-bottom: 8px;
-        }
-        .search-field input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1.5px solid #bbb;
-            border-radius: 8px;
-            font-size: 1.1em;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-        .search-field input:focus {
-            border-color: #0e2f44;
-            box-shadow: 0 0 0 3px rgba(14, 47, 68, 0.1);
-            outline: none;
-        }
-        .loading {
-            display: none;
-            margin-left: 10px;
-            color: #666;
-        }
-        .loading.active {
-            display: inline-block;
-        }
         @media (max-width: 768px) {
+            .dashboard {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            .dashboard.active {
+                transform: translateX(0);
+            }
+            .content {
+                margin-left: 0;
+            }
             .search-row {
                 flex-direction: column;
                 gap: 15px;
@@ -311,6 +339,25 @@ if (!empty($doctors)) {
             .search-field {
                 width: 100%;
             }
+            .doctor-card {
+                min-width: unset;
+                padding: 20px;
+            }
+        }
+        /* Custom scrollbar */
+        .main-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        .main-content::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+            border-radius: 4px;
+        }
+        .main-content::-webkit-scrollbar-thumb {
+            background: rgba(14, 47, 68, 0.3);
+            border-radius: 4px;
+        }
+        .main-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(14, 47, 68, 0.5);
         }
     </style>
 </head>
@@ -372,95 +419,96 @@ if (!empty($doctors)) {
                     </div>
                 </div>
             </div>
-            <!-- Ici commence le contenu spécifique à la prise de rendez-vous -->
-            <div class="container">
-                <h2>Demander un rendez-vous</h2>
-                <?php if (isset($message) && $message) echo $message; ?>
-                
-                <div class="search-container">
-                    <form id="searchForm" method="post" action="">
-                        <div class="search-row">
-                            <div class="search-field">
-                                <label for="specialite">Spécialité :</label>
-                                <input type="text" 
-                                       name="specialite" 
-                                       id="specialite" 
-                                       list="specialtySuggestions" 
-                                       placeholder="Entrez ou sélectionnez une spécialité" 
-                                       autocomplete="off"
-                                       value="<?php echo htmlspecialchars($specialite); ?>">
-                                <datalist id="specialtySuggestions">
-                                    <?php foreach ($allSpecialties as $specialty): ?>
-                                        <option value="<?php echo htmlspecialchars($specialty); ?>">
-                                            <?php echo htmlspecialchars($specialty); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </datalist>
+            <div class="main-content">
+                <div class="container">
+                    <h2>Demander un rendez-vous</h2>
+                    <?php if (isset($message) && $message) echo $message; ?>
+                    
+                    <div class="search-container">
+                        <form id="searchForm" method="post" action="">
+                            <div class="search-row">
+                                <div class="search-field">
+                                    <label for="specialite">Spécialité :</label>
+                                    <input type="text" 
+                                           name="specialite" 
+                                           id="specialite" 
+                                           list="specialtySuggestions" 
+                                           placeholder="Entrez ou sélectionnez une spécialité" 
+                                           autocomplete="off"
+                                           value="<?php echo htmlspecialchars($specialite); ?>">
+                                    <datalist id="specialtySuggestions">
+                                        <?php foreach ($allSpecialties as $specialty): ?>
+                                            <option value="<?php echo htmlspecialchars($specialty); ?>">
+                                                <?php echo htmlspecialchars($specialty); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </datalist>
+                                </div>
+                                <div class="search-field">
+                                    <label for="filter_nom">Rechercher un médecin :</label>
+                                    <input type="text" 
+                                           name="filter_nom" 
+                                           id="filter_nom" 
+                                           placeholder="Commencez à taper le nom du médecin..."
+                                           value="<?php echo htmlspecialchars($filter_nom); ?>"
+                                           autocomplete="off">
+                                    <span class="loading">Recherche en cours...</span>
+                                </div>
                             </div>
-                            <div class="search-field">
-                                <label for="filter_nom">Rechercher un médecin :</label>
-                                <input type="text" 
-                                       name="filter_nom" 
-                                       id="filter_nom" 
-                                       placeholder="Entrez le nom du médecin"
-                                       value="<?php echo htmlspecialchars($filter_nom); ?>"
-                                       autocomplete="off">
-                                <span class="loading">Recherche en cours...</span>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+                        </form>
+                    </div>
 
-                <div id="doctorsList">
-                    <?php if (!empty($doctors)): ?>
-                        <?php foreach ($doctors as $doc): ?>
-                            <div class="doctor-card">
-                                <strong><?php echo htmlspecialchars($doc['nom']); ?></strong>
-                                <div style="color: #666; margin-top: 4px;"><?php echo htmlspecialchars($doc['specialite']); ?></div>
-                                <br>
-                                Note moyenne :
-                                <span class="stars">
-                                    <?php
-                                    $note = isset($doctor_ratings[$doc['id']]) ? $doctor_ratings[$doc['id']] : 0;
-                                    for ($i = 1; $i <= 5; $i++) {
-                                        echo $i <= round($note) ? '★' : '☆';
-                                    }
-                                    echo $note ? " ({$note}/5)" : " (pas encore de note)";
-                                    ?>
-                                </span><br>
-                                <?php if (!empty($doctor_motifs[$doc['id']])): ?>
-                                    <div>Dernières recommandations :</div>
-                                    <?php foreach ($doctor_motifs[$doc['id']] as $motif): ?>
-                                        <div class="motif">- <?php echo htmlspecialchars($motif); ?></div>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                                <form method="post" action="" class="rating-form" style="margin-top:8px;">
-                                    <input type="hidden" name="reco_medecin_id" value="<?php echo $doc['id']; ?>">
-                                    <label>Votre note :</label>
-                                    <div class="stars-input" data-for="<?php echo $doc['id']; ?>">
-                                        <?php for ($i=1; $i<=5; $i++): ?>
-                                            <span class="star" data-value="<?php echo $i; ?>">&#9733;</span>
-                                        <?php endfor; ?>
-                                        <input type="hidden" name="note" value="">
-                                        <span class="stars-value"></span>
-                                    </div>
-                                    <input type="text" name="motif" placeholder="Motif (optionnel)" maxlength="255">
-                                    <button type="submit">Noter</button>
-                                </form>
-                                <form method="post" action="" style="margin-top:8px;">
-                                    <input type="hidden" name="specialite" value="<?php echo htmlspecialchars($specialite); ?>">
-                                    <input type="hidden" name="medecin_id" value="<?php echo $doc['id']; ?>">
-                                    <label for="date_rendezvous_<?php echo $doc['id']; ?>">Date et heure :</label>
-                                    <input type="datetime-local" name="date_rendezvous" id="date_rendezvous_<?php echo $doc['id']; ?>" required>
-                                    <button type="submit">Demander ce rendez-vous</button>
-                                </form>
+                    <div id="doctorsList">
+                        <?php if (!empty($doctors)): ?>
+                            <?php foreach ($doctors as $doc): ?>
+                                <div class="doctor-card">
+                                    <strong><?php echo htmlspecialchars($doc['nom']); ?></strong>
+                                    <div style="color: #666; margin-top: 4px;"><?php echo htmlspecialchars($doc['specialite']); ?></div>
+                                    <br>
+                                    Note moyenne :
+                                    <span class="stars">
+                                        <?php
+                                        $note = isset($doctor_ratings[$doc['id']]) ? $doctor_ratings[$doc['id']] : 0;
+                                        for ($i = 1; $i <= 5; $i++) {
+                                            echo $i <= round($note) ? '★' : '☆';
+                                        }
+                                        echo $note ? " ({$note}/5)" : " (pas encore de note)";
+                                        ?>
+                                    </span><br>
+                                    <?php if (!empty($doctor_motifs[$doc['id']])): ?>
+                                        <div>Dernières recommandations :</div>
+                                        <?php foreach ($doctor_motifs[$doc['id']] as $motif): ?>
+                                            <div class="motif">- <?php echo htmlspecialchars($motif); ?></div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                    <form method="post" action="" class="rating-form" style="margin-top:8px;">
+                                        <input type="hidden" name="reco_medecin_id" value="<?php echo $doc['id']; ?>">
+                                        <label>Votre note :</label>
+                                        <div class="stars-input" data-for="<?php echo $doc['id']; ?>">
+                                            <?php for ($i=1; $i<=5; $i++): ?>
+                                                <span class="star" data-value="<?php echo $i; ?>">&#9733;</span>
+                                            <?php endfor; ?>
+                                            <input type="hidden" name="note" value="">
+                                            <span class="stars-value"></span>
+                                        </div>
+                                        <input type="text" name="motif" placeholder="Motif (optionnel)" maxlength="255">
+                                        <button type="submit">Noter</button>
+                                    </form>
+                                    <form method="post" action="" style="margin-top:8px;">
+                                        <input type="hidden" name="specialite" value="<?php echo htmlspecialchars($specialite); ?>">
+                                        <input type="hidden" name="medecin_id" value="<?php echo $doc['id']; ?>">
+                                        <label for="date_rendezvous_<?php echo $doc['id']; ?>">Date et heure :</label>
+                                        <input type="datetime-local" name="date_rendezvous" id="date_rendezvous_<?php echo $doc['id']; ?>" required>
+                                        <button type="submit">Demander ce rendez-vous</button>
+                                    </form>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="no-results" style="text-align: center; padding: 20px; background: white; border-radius: 8px; margin-top: 20px;">
+                                Aucun médecin trouvé pour votre recherche.
                             </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <div class="no-results" style="text-align: center; padding: 20px; background: white; border-radius: 8px; margin-top: 20px;">
-                            Aucun médecin trouvé pour votre recherche.
-                        </div>
-                    <?php endif; ?>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
@@ -521,6 +569,10 @@ if (!empty($doctors)) {
         loadingIndicator.classList.add('active');
         const formData = new FormData(searchForm);
         
+        // Convert the search term to lowercase for case-insensitive search
+        const searchTerm = formData.get('filter_nom').toLowerCase();
+        formData.set('filter_nom', searchTerm);
+        
         fetch(window.location.href, {
             method: 'POST',
             body: formData
@@ -548,6 +600,9 @@ if (!empty($doctors)) {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(performSearch, 300);
     });
+
+    // Add placeholder text to show search behavior
+    filterInput.placeholder = "Commencez à taper le nom du médecin...";
     </script>
     <script src="../index.js"></script>
 </body>
