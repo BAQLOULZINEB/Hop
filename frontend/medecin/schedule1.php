@@ -2,14 +2,14 @@
 require_once '../../backend/auth/session_handler.php';
 checkRole('medecin');
 
+$doctor_name = htmlspecialchars($_SESSION['user']['nom']);
+$medecin_id = $_SESSION['user']['id'];
+
+// Get current view and date from GET params
 $view = isset($_GET['view']) ? $_GET['view'] : 'month';
 $year = isset($_GET['year']) ? intval($_GET['year']) : intval(date('Y'));
 $month = isset($_GET['month']) ? intval($_GET['month']) : intval(date('n'));
 $day = isset($_GET['day']) ? intval($_GET['day']) : intval(date('j'));
-
-$doctor_name = htmlspecialchars($_SESSION['user']['nom']);
-
-$medecin_id = $_SESSION['user']['id'];
 
 // Fetch all confirmed appointments for this doctor (past and future)
 try {
@@ -75,7 +75,184 @@ $dummy_event = [
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <title>Doctor Dashboard</title>
+    <title>Schedule - Doctor Dashboard</title>
+    <!-- Bootstrap 5 CDN for calendar -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .calendar-header-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1.5rem; flex-wrap: wrap;
+        }
+        .calendar-header-bar .btn-group { margin-right: 1rem; }
+        .calendar-header-bar .form-select, .calendar-header-bar .form-control { width: auto; display: inline-block; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #e9ecef; border-radius: 8px; }
+        .calendar-day-header, .calendar-cell { background: #fff; min-height: 110px; border-radius: 6px; padding: 8px; }
+        .calendar-day-header { font-weight: bold; text-align: center; background: #f8f9fa; color: #0e2f44; }
+        .calendar-cell.today { border: 2px solid #2ecc71; background: #eafaf1; }
+        .calendar-cell .date-num { font-weight: bold; color: #0e2f44; }
+        .event-preview {
+            display: block; margin: 4px 0; padding: 4px 8px; border-radius: 4px; color: #fff; font-size: 0.95em;
+            text-decoration: none; font-weight: 500; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .calendar-week-grid { display: grid; grid-template-columns: 60px repeat(7, 1fr); }
+        .calendar-week-hour { background: #f8f9fa; text-align: right; padding: 2px 6px; font-size: 0.9em; color: #888; }
+        .calendar-week-cell { min-height: 48px; border: 1px solid #e9ecef; position: relative; }
+        .calendar-week-cell .event-block {
+            position: absolute; left: 2px; right: 2px; top: 2px; min-height: 20px; border-radius: 4px; color: #fff; font-size: 0.95em; padding: 2px 6px;
+            z-index: 2; font-weight: 500; cursor: pointer;
+        }
+        .calendar-day-timeline { border-left: 3px solid #2ecc71; margin-left: 30px; padding-left: 20px; }
+        .calendar-day-timeline .event-block { margin-bottom: 16px; }
+        .sidebar-events { max-height: 80vh; overflow-y: auto; background: #f8f9fa; border-radius: 8px; padding: 1rem; }
+        .sidebar-events .event-preview { margin-bottom: 8px; }
+        @media (max-width: 900px) {
+            .calendar-header-bar { flex-direction: column; align-items: flex-start; }
+            .calendar-header-bar .btn-group { margin-bottom: 1rem; }
+            .calendar-grid, .calendar-week-grid { font-size: 0.95em; }
+        }
+
+        /* Improved navigation styles */
+        .dashboard {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+        .dashboard.collapsed {
+            width: 70px;
+        }
+        .dashboard .title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .dashboard .title img {
+            width: 40px;
+            margin-right: 10px;
+        }
+        .dashboard .title h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .dashboard .toggle {
+            margin-left: auto;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        .dashboard .links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .dashboard .links li {
+            margin-bottom: 5px;
+        }
+        .dashboard .links a {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        .dashboard .links a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .dashboard .links a.active {
+            background: #3498db;
+        }
+        .dashboard .links i {
+            width: 20px;
+            margin-right: 10px;
+        }
+        .dashboard.collapsed .links span {
+            display: none;
+        }
+        .dashboard.collapsed .title h2 {
+            display: none;
+        }
+
+        /* Dashboard Statistics */
+        .details {
+            margin-bottom: 2rem;
+        }
+        .main-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .m-d {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+        }
+        .m-d i {
+            font-size: 2rem;
+            margin-right: 1rem;
+            color: #3498db;
+        }
+        .stat p {
+            margin: 0;
+        }
+        .stat .number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        /* Collapsible Sidebar */
+        .sidebar-toggle {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar-events {
+            position: fixed;
+            right: -300px;
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            transition: right 0.3s ease;
+            z-index: 999;
+            padding: 20px;
+        }
+        .sidebar-events.active {
+            right: 0;
+        }
+        .sidebar-events .close-sidebar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #666;
+        }
+    </style>
 </head>
 <body style="background-image: url('../images/background_page.jpg'); background-color: rgba(12, 36, 54, 0.55); background-position: center; background-size: cover; background-repeat: no-repeat;">   
     <div class="page">
@@ -170,9 +347,12 @@ $dummy_event = [
                     </div>
                 </div>
             </div>
+
+            <!-- Calendar Header and Views (keep the new calendar code here) -->
             <div class="container-fluid py-4">
                 <div class="row">
                     <div class="col-lg-9">
+                        <!-- Calendar Header -->
                         <div class="calendar-header-bar mb-3">
                             <div>
                                 <form class="d-inline-flex align-items-center" method="get" action="">
@@ -199,7 +379,10 @@ $dummy_event = [
                                 <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addEventModal"><i class="fa fa-plus"></i> Add Event</button>
                             </div>
                         </div>
+
+                        <!-- Calendar Views -->
                         <?php
+                        // Month View
                         if ($view == 'month') {
                             $first_day = mktime(0,0,0,$month,1,$year);
                             $days_in_month = date('t', $first_day);
@@ -234,6 +417,7 @@ $dummy_event = [
                             for ($i=0; $i<(7-($cells%7))%7; $i++) echo '<div class="calendar-cell"></div>';
                             echo '</div>';
                         }
+                        // Week View
                         elseif ($view == 'week') {
                             $current = mktime(0,0,0,$month,$day,$year);
                             $start = strtotime('last sunday', $current);
@@ -272,6 +456,7 @@ $dummy_event = [
                             }
                             echo '</div>';
                         }
+                        // Day View
                         else {
                             $date_str = sprintf('%04d-%02d-%02d', $year, $month, $day);
                             $is_today = ($date_str == date('Y-m-d'));
@@ -291,8 +476,10 @@ $dummy_event = [
                         }
                         ?>
                     </div>
+                    <!-- Sidebar: Upcoming Events -->
                     <div class="col-lg-3">
-                        <div class="sidebar-events shadow-sm">
+                        <div class="sidebar-events">
+                            <button class="close-sidebar"><i class="fa-solid fa-times"></i></button>
                             <h5 class="mb-3">Upcoming Appointments</h5>
                             <?php
                             $now = date('Y-m-d H:i:s');
@@ -316,46 +503,88 @@ $dummy_event = [
                     </div>
                 </div>
             </div>
-            <div class="modal fade" id="addEventModal" tabindex="-1" aria-labelledby="addEventModalLabel" aria-hidden="true">
-              <div class="modal-dialog">
-                <form class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title" id="addEventModalLabel">Add Appointment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-body">
-                    <div class="mb-3">
-                      <label class="form-label">Patient Name</label>
-                      <input type="text" class="form-control" value="<?= htmlspecialchars($dummy_event['patient']) ?>" disabled>
-                    </div>
-                    <div class="mb-3">
-                      <label class="form-label">Date</label>
-                      <input type="date" class="form-control" value="<?= htmlspecialchars($dummy_event['date']) ?>">
-                    </div>
-                    <div class="mb-3 row">
-                      <div class="col">
-                        <label class="form-label">Start Time</label>
-                        <input type="time" class="form-control" value="<?= htmlspecialchars($dummy_event['start']) ?>">
-                      </div>
-                      <div class="col">
-                        <label class="form-label">End Time</label>
-                        <input type="time" class="form-control" value="<?= htmlspecialchars($dummy_event['end']) ?>">
-                      </div>
-                    </div>
-                    <div class="mb-3">
-                      <label class="form-label">Title</label>
-                      <input type="text" class="form-control" value="<?= htmlspecialchars($dummy_event['title']) ?>">
-                    </div>
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">Add (Demo)</button>
-                  </div>
-                </form>
-              </div>
-            </div>
         </div>
     </div>
-    <script src="../index.js"></script>
+
+    <!-- Add Event Modal (dummy logic for now) -->
+    <div class="modal fade" id="addEventModal" tabindex="-1" aria-labelledby="addEventModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <form class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addEventModalLabel">Add Appointment</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Patient Name</label>
+              <input type="text" class="form-control" value="<?= htmlspecialchars($dummy_event['patient']) ?>" disabled>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Date</label>
+              <input type="date" class="form-control" value="<?= htmlspecialchars($dummy_event['date']) ?>">
+            </div>
+            <div class="mb-3 row">
+              <div class="col">
+                <label class="form-label">Start Time</label>
+                <input type="time" class="form-control" value="<?= htmlspecialchars($dummy_event['start']) ?>">
+              </div>
+              <div class="col">
+                <label class="form-label">End Time</label>
+                <input type="time" class="form-control" value="<?= htmlspecialchars($dummy_event['end']) ?>">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Title</label>
+              <input type="text" class="form-control" value="<?= htmlspecialchars($dummy_event['title']) ?>">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-success" data-bs-dismiss="modal">Add (Demo)</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Add sidebar toggle button -->
+    <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fa-solid fa-calendar"></i>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Toggle dashboard collapse
+        document.querySelector('.toggle').addEventListener('click', function() {
+            document.querySelector('.dashboard').classList.toggle('collapsed');
+        });
+
+        // Toggle upcoming appointments sidebar
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.sidebar-events');
+        const closeSidebar = document.querySelector('.close-sidebar');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.add('active');
+        });
+
+        closeSidebar.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+        });
+
+        // Close sidebar when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                sidebar.classList.remove('active');
+            }
+        });
+
+        // Set active link in navigation
+        const currentPage = window.location.pathname.split('/').pop();
+        document.querySelectorAll('.links a').forEach(link => {
+            if (link.getAttribute('href') === currentPage) {
+                link.classList.add('active');
+            }
+        });
+    </script>
 </body>
 </html>
