@@ -170,62 +170,8 @@ setupRealTimeValidation(signupInputs, true);
 
 // Gestion des erreurs de serveur
 function handleServerError(error) {
-    const errorNotification = document.createElement('div');
-    errorNotification.className = 'server-error-notification';
-    errorNotification.innerHTML = `
-        <div class="error-content">
-            <i class="fas fa-exclamation-circle"></i>
-            <span>${error.message}</span>
-            <button class="close-error">&times;</button>
-        </div>
-    `;
-
-    // Style pour la notification d'erreur serveur
-    const style = document.createElement('style');
-    style.textContent = `
-        .server-error-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: #ff4444;
-            color: white;
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            z-index: 1000;
-            animation: slideIn 0.5s ease-out;
-        }
-        .server-error-notification .error-content {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .server-error-notification .close-error {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 20px;
-            padding: 0 5px;
-        }
-        @keyframes slideIn {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
-        }
-    `;
-    document.head.appendChild(style);
-    document.body.appendChild(errorNotification);
-
-    // Gérer la fermeture de la notification
-    const closeButton = errorNotification.querySelector('.close-error');
-    closeButton.addEventListener('click', () => {
-        errorNotification.remove();
-    });
-
-    // Supprimer automatiquement après 5 secondes
-    setTimeout(() => {
-        errorNotification.remove();
-    }, 5000);
+    // Only log to console, never show notification
+    console.error('Server error:', error);
 }
 
 function isAllowedDomain(email) {

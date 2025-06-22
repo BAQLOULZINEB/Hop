@@ -1,4 +1,4 @@
-const toggleButton = document.querySelector(".dashboard .title .toggle");
+const toggleButton = document.querySelector(".dashboard .title .toggle");More actions
 const dash = document.querySelector(".dashboard");
 const logo = document.querySelector(".dashboard .title .logo");
 const title = document.querySelector(".dashboard .title h2");
@@ -26,13 +26,9 @@ let month = date.getMonth();
 let year = date.getFullYear();
 
 // Fonction utilitaire pour la gestion des erreurs
-// This function only logs errors to the console. It will never show notifications, alerts, or modify the DOM.
 function handleError(error, context) {
-    // Only log to console, never show UI notification
-    if (window && window.console && typeof window.console.error === 'function') {
-        console.error(`Erreur dans ${context}:`, error);
-    }
-    // No notification, no popup, no DOM manipulation
+    // Only log errors to the console, never show notifications or modify the DOM
+    console.error(`Erreur dans ${context}:`, error);
 }
 
 // Wrapper pour les fonctions avec gestion d'erreur
@@ -47,64 +43,61 @@ function withErrorHandling(fn, context) {
 }
 
 // Gestionnaire du bouton toggle
-if (toggleButton && dash && logo && title && spans && list && tog) {
-    toggleButton.addEventListener('click', withErrorHandling(() => {
-        toggleButton.classList.toggle("toggled");
+toggleButton.addEventListener('click', withErrorHandling(() => {
+    toggleButton.classList.toggle("toggled");
 
-        if (toggleButton.classList.contains("toggled")) {
-            dash.style.width = "50px"; 
-            logo.style.display = "none";
-            title.style.display = "none";
-            spans.forEach((el) => {
-                el.style.display = "none";
-            });
-            list.forEach((el) => {
-                el.style.display = "none";
-            });
-            tog.forEach((el) => {
-                el.style.display = "none";
-            });
-        } else {
-            dash.style.width = "250px";
-            logo.style.display = "block";
-            title.style.display = "block";
-            spans.forEach((el) => {
-                el.style.display = "inline";
-            });
-            tog.forEach((el) => {
-                el.style.display = "block";
-            });
-        }
-    }, 'toggleButton click handler'));
-}
+    if (toggleButton.classList.contains("toggled")) {
+        dash.style.width = "50px"; 
+        logo.style.display = "none";
+        title.style.display = "none";
+        spans.forEach((el) => {
+            el.style.display = "none";
+        });
+        list.forEach((el) => {
+            el.style.display = "none";
+        });
+        tog.forEach((el) => {
+            el.style.display = "none";
+        });
+    } else {
+        dash.style.width = "250px";
+        logo.style.display = "block";
+        title.style.display = "block";
+        spans.forEach((el) => {
+            el.style.display = "inline";
+        });
+        tog.forEach((el) => {
+            el.style.display = "block";
+        });
+    }
+}, 'toggleButton click handler'));
 
 // Gestion des listes de médecins
-if (doctorsListOne && firstList && tog[0] && doctorsListOne.classList.contains("active")) {
+if (doctorsListOne.classList.contains("active")) {
     firstList.style.display = "block";
     tog[0].classList.replace("fa-angle-right", "fa-angle-down");
 }
 
-if (doctorsListTwo && secondList && tog[1] && doctorsListTwo.classList.contains("active")) {
+if (doctorsListTwo.classList.contains("active")) {
     secondList.style.display = "block";
     tog[1].classList.replace("fa-angle-right", "fa-angle-down");
 }
 
 // Gestionnaires des boutons income et close
-if (incomeButton && showHide) {
-    incomeButton.onclick = withErrorHandling(() => {
-        showHide.style.display = "block";
-    }, 'income button click');
-}
+incomeButton.onclick = withErrorHandling(() => {
+    showHide.style.display = "block";
+}, 'income button click');
 
-if (closeButton && showHide) {
-    closeButton.onclick = withErrorHandling(() => {
-        showHide.style.display = "none";
-    }, 'close button click');
-}
+
+
+closeButton.onclick = withErrorHandling(() => {
+    showHide.style.display = "none";
+}, 'close button click');
+
+
 
 // Fonction du calendrier
 function renderCalendar() {
-    if (!header || !dates) return;
     try {
         const start = new Date(year, month, 1).getDay();
         const endDate = new Date(year, month + 1, 0).getDate();
@@ -139,31 +132,30 @@ function renderCalendar() {
 }
 
 // Gestionnaires d'événements du calendrier
-if (navs && navs.length && header && dates) {
-    navs.forEach((nav) => {
-        nav.addEventListener("click", withErrorHandling((e) => {
-            const btnId = e.target.id;
+navs.forEach((nav) => {
+    nav.addEventListener("click", withErrorHandling((e) => {
+        const btnId = e.target.id;
 
-            if (btnId === "prev" && month === 0) {
-                year--;
-                month = 11;
-            } else if (btnId === "next" && month === 11) {
-                year++;
-                month = 0;
-            } else {
-                month = btnId === "next" ? month + 1 : month - 1;
-            }
+        if (btnId === "prev" && month === 0) {
+            year--;
+            month = 11;
+        } else if (btnId === "next" && month === 11) {
+            year++;
+            month = 0;
+        } else {
+            month = btnId === "next" ? month + 1 : month - 1;
+        }
 
-            date = new Date(year, month, new Date().getDate());
-            year = date.getFullYear();
-            month = date.getMonth();
+        date = new Date(year, month, new Date().getDate());
+        year = date.getFullYear();
+        month = date.getMonth();
 
-            renderCalendar();
-        }, 'calendar navigation'));
-    });
-    // Initialisation du calendrier
-    renderCalendar();
-}
+        renderCalendar();
+    }, 'calendar navigation'));
+});
+
+// Initialisation du calendrier
+renderCalendar();
 
 // Gestionnaire DOMContentLoaded
 document.addEventListener("DOMContentLoaded", withErrorHandling(() => {
@@ -199,6 +191,6 @@ document.addEventListener("DOMContentLoaded", withErrorHandling(() => {
                     }
                 }
             });
-        }, 'toggle submenu'));
+        }, 'submenu toggle'));
     });
 }, 'DOMContentLoaded'));
