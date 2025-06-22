@@ -1,16 +1,14 @@
-#include <EEPROM.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <DHTesp.h>
 
-#define EEPROM_SIZE 32         // Allocate 32 bytes for storing the patient ID
 #define SEND_INTERVAL 250      // Send data every 250ms (4 times per second)
 
 // WiFi and server config
 const char* ssid = "Fibre_MarocTelecom-AA45";
 const char* password = "QKjKCCM24K";
-const char* serverName = "http://192.168.1.9/hospital_management_v1/backend/api/update.php";
-String patientID = ""; // Patient ID is now dynamic
+const char* serverName = "http://192.168.1.7:8080/hospital_management_v1/backend/api/update.php";
+String patientID = ""; // Patient ID is now always set at session start
 
 // Hardware pins
 const int DHTPIN = 17;    // DHT11 data pin
@@ -20,64 +18,40 @@ const int LO_PLUS = 33;   // AD8232 LO+ pin
 
 DHTesp dht;
 unsigned long lastSendTime = 0;
+unsigned long sessionStart = 0;
+const unsigned long sessionDuration = 60000; // 1 minute in milliseconds
 
 void setup() {
   Serial.begin(115200);
   delay(1000); // Wait for serial to initialize
 
-  // Initialize EEPROM
-  EEPROM.begin(EEPROM_SIZE);
-
-  // Read Patient ID from EEPROM
+  // Always prompt for Patient ID at session start
   patientID = "";
-  for (int i = 0; i < EEPROM_SIZE; ++i) {
-    char c = EEPROM.read(i);
-    if (c == 0) break; // Stop at null terminator
-    patientID += c;
-  }
-  patientID.trim();
-
-  // If no patient ID is stored, prompt the user via Serial Monitor
   while (patientID.length() == 0) {
     Serial.println("----------------------------------------");
-    Serial.println("DEVICE NOT ASSIGNED");
     Serial.println("Please enter the Patient ID and press Enter:");
-    
     while (Serial.available() == 0) {
       delay(100); // Wait for user input
     }
-    
     String input = Serial.readStringUntil('\n');
     input.trim();
-    
     if (input.length() > 0 && input.toInt() > 0) {
       patientID = input;
-      // Save the new ID to EEPROM
-      for (int i = 0; i < patientID.length(); ++i) {
-        EEPROM.write(i, patientID[i]);
-      }
-      EEPROM.write(patientID.length(), 0); // Add null terminator
-      EEPROM.commit();
-      
       Serial.print("Patient ID '");
       Serial.print(patientID);
-      Serial.println("' has been saved.");
-      Serial.println("The device will now start sending data.");
+      Serial.println("' has been set for this session.");
       Serial.println("----------------------------------------");
     } else {
-       Serial.println("Invalid ID. Please enter a numeric ID greater than 0.");
+      Serial.println("Invalid ID. Please enter a numeric ID greater than 0.");
     }
   }
+  sessionStart = millis();
 
-  Serial.print("Device assigned to Patient ID: ");
-  Serial.println(patientID);
-  Serial.println("Type 'reset' and press Enter to assign a new patient.");
-  
   // Configure pins for AD8232
   pinMode(LO_MINUS, INPUT);
   pinMode(LO_PLUS, INPUT);
   // No LM35, so no TEMP_SENSOR_PIN setup
-  
+
   // Initialize DHT11 sensor
   dht.setup(DHTPIN, DHTesp::DHT11);
   Serial.println("DHT11 sensor initialized");
@@ -90,7 +64,6 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
-  
   if(WiFi.status() != WL_CONNECTED) {
     Serial.println("\nWiFi connection failed");
   } else {
@@ -101,22 +74,11 @@ void setup() {
 }
 
 void loop() {
-  // Check for a reset command from the Serial Monitor
-  if (Serial.available() > 0) {
-    String command = Serial.readStringUntil('\n');
-    command.trim();
-    if (command == "reset") {
-      Serial.println("****************************************");
-      Serial.println("Resetting Patient ID...");
-      for (int i = 0; i < EEPROM_SIZE; i++) {
-        EEPROM.write(i, 0); // Clear EEPROM
-      }
-      EEPROM.commit();
-      Serial.println("Patient ID has been cleared.");
-      Serial.println("Please restart the device to set a new ID.");
-      Serial.println("****************************************");
-      ESP.restart();
-    }
+  // Check if session duration has elapsed
+  if (millis() - sessionStart > sessionDuration) {
+    Serial.println("Session finished. Please enter a new patient ID for the next session.");
+    delay(1000);
+    ESP.restart();
   }
 
   // Send data at a fixed high frequency for the waveform graph

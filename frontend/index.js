@@ -26,68 +26,13 @@ let month = date.getMonth();
 let year = date.getFullYear();
 
 // Fonction utilitaire pour la gestion des erreurs
+// This function only logs errors to the console. It will never show notifications, alerts, or modify the DOM.
 function handleError(error, context) {
-    console.error(`Erreur dans ${context}:`, error);
-    
-    // Créer un élément de notification d'erreur
-    const errorNotification = document.createElement('div');
-    errorNotification.className = 'error-notification';
-    errorNotification.innerHTML = `
-        <div class="error-content">
-            <i class="fas fa-exclamation-circle"></i>
-            <span>Une erreur est survenue: ${error.message}</span>
-            <button class="close-error">&times;</button>
-        </div>
-    `;
-    
-    // Ajouter le style pour la notification
-    const style = document.createElement('style');
-    style.textContent = `
-        .error-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: #ff4444;
-            color: white;
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            z-index: 1000;
-            animation: slideIn 0.5s ease-out;
-        }
-        .error-content {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .close-error {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 20px;
-            padding: 0 5px;
-        }
-        @keyframes slideIn {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
-        }
-    `;
-    document.head.appendChild(style);
-    
-    // Ajouter la notification au document
-    document.body.appendChild(errorNotification);
-    
-    // Gérer la fermeture de la notification
-    const closeButton = errorNotification.querySelector('.close-error');
-    closeButton.addEventListener('click', () => {
-        errorNotification.remove();
-    });
-    
-    // Supprimer automatiquement après 5 secondes
-    setTimeout(() => {
-        errorNotification.remove();
-    }, 5000);
+    // Only log to console, never show UI notification
+    if (window && window.console && typeof window.console.error === 'function') {
+        console.error(`Erreur dans ${context}:`, error);
+    }
+    // No notification, no popup, no DOM manipulation
 }
 
 // Wrapper pour les fonctions avec gestion d'erreur
@@ -102,54 +47,56 @@ function withErrorHandling(fn, context) {
 }
 
 // Gestionnaire du bouton toggle
-toggleButton.addEventListener('click', withErrorHandling(() => {
-    toggleButton.classList.toggle("toggled");
+if (toggleButton && dash && logo && title && spans && list && tog) {
+    toggleButton.addEventListener('click', withErrorHandling(() => {
+        toggleButton.classList.toggle("toggled");
 
-    if (toggleButton.classList.contains("toggled")) {
-        dash.style.width = "50px"; 
-        logo.style.display = "none";
-        title.style.display = "none";
-        spans.forEach((el) => {
-            el.style.display = "none";
-        });
-        list.forEach((el) => {
-            el.style.display = "none";
-        });
-        tog.forEach((el) => {
-            el.style.display = "none";
-        });
-    } else {
-        dash.style.width = "250px";
-        logo.style.display = "block";
-        title.style.display = "block";
-        spans.forEach((el) => {
-            el.style.display = "inline";
-        });
-        tog.forEach((el) => {
-            el.style.display = "block";
-        });
-    }
-}, 'toggleButton click handler'));
+        if (toggleButton.classList.contains("toggled")) {
+            dash.style.width = "50px"; 
+            logo.style.display = "none";
+            title.style.display = "none";
+            spans.forEach((el) => {
+                el.style.display = "none";
+            });
+            list.forEach((el) => {
+                el.style.display = "none";
+            });
+            tog.forEach((el) => {
+                el.style.display = "none";
+            });
+        } else {
+            dash.style.width = "250px";
+            logo.style.display = "block";
+            title.style.display = "block";
+            spans.forEach((el) => {
+                el.style.display = "inline";
+            });
+            tog.forEach((el) => {
+                el.style.display = "block";
+            });
+        }
+    }, 'toggleButton click handler'));
+}
 
 // Gestion des listes de médecins
-if (doctorsListOne && doctorsListOne.classList.contains("active")) {
+if (doctorsListOne && firstList && tog[0] && doctorsListOne.classList.contains("active")) {
     firstList.style.display = "block";
     tog[0].classList.replace("fa-angle-right", "fa-angle-down");
 }
 
-if (doctorsListTwo && doctorsListTwo.classList.contains("active")) {
+if (doctorsListTwo && secondList && tog[1] && doctorsListTwo.classList.contains("active")) {
     secondList.style.display = "block";
     tog[1].classList.replace("fa-angle-right", "fa-angle-down");
 }
 
 // Gestionnaires des boutons income et close
-if (incomeButton) {
+if (incomeButton && showHide) {
     incomeButton.onclick = withErrorHandling(() => {
         showHide.style.display = "block";
     }, 'income button click');
 }
 
-if (closeButton) {
+if (closeButton && showHide) {
     closeButton.onclick = withErrorHandling(() => {
         showHide.style.display = "none";
     }, 'close button click');
@@ -157,6 +104,7 @@ if (closeButton) {
 
 // Fonction du calendrier
 function renderCalendar() {
+    if (!header || !dates) return;
     try {
         const start = new Date(year, month, 1).getDay();
         const endDate = new Date(year, month + 1, 0).getDate();
@@ -191,61 +139,58 @@ function renderCalendar() {
 }
 
 // Gestionnaires d'événements du calendrier
-navs.forEach((nav) => {
-    nav.addEventListener("click", withErrorHandling((e) => {
-        const btnId = e.target.id;
+if (navs && navs.length && header && dates) {
+    navs.forEach((nav) => {
+        nav.addEventListener("click", withErrorHandling((e) => {
+            const btnId = e.target.id;
 
-        if (btnId === "prev" && month === 0) {
-            year--;
-            month = 11;
-        } else if (btnId === "next" && month === 11) {
-            year++;
-            month = 0;
-        } else {
-            month = btnId === "next" ? month + 1 : month - 1;
-        }
+            if (btnId === "prev" && month === 0) {
+                year--;
+                month = 11;
+            } else if (btnId === "next" && month === 11) {
+                year++;
+                month = 0;
+            } else {
+                month = btnId === "next" ? month + 1 : month - 1;
+            }
 
-        date = new Date(year, month, new Date().getDate());
-        year = date.getFullYear();
-        month = date.getMonth();
+            date = new Date(year, month, new Date().getDate());
+            year = date.getFullYear();
+            month = date.getMonth();
 
-        renderCalendar();
-    }, 'calendar navigation'));
-});
-
-// Initialisation du calendrier
-renderCalendar();
+            renderCalendar();
+        }, 'calendar navigation'));
+    });
+    // Initialisation du calendrier
+    renderCalendar();
+}
 
 // Gestionnaire DOMContentLoaded
 document.addEventListener("DOMContentLoaded", withErrorHandling(() => {
     const dropdownToggle = document.getElementById("dropdownToggle");
     const profileDropdown = document.getElementById("profileDropdown");
 
-    if (!dropdownToggle || !profileDropdown) {
-        throw new Error('Éléments de dropdown non trouvés');
+    // Only execute dropdown logic if both elements exist
+    if (dropdownToggle && profileDropdown) {
+        dropdownToggle.addEventListener("click", withErrorHandling((event) => {
+            event.stopPropagation();
+            profileDropdown.style.display =
+                profileDropdown.style.display === "block" ? "none" : "block";
+        }, 'dropdown toggle'));
+
+        document.addEventListener("click", withErrorHandling(() => {
+            profileDropdown.style.display = "none";
+        }, 'document click'));
     }
 
-    dropdownToggle.addEventListener("click", withErrorHandling((event) => {
-        event.stopPropagation();
-        profileDropdown.style.display =
-            profileDropdown.style.display === "block" ? "none" : "block";
-    }, 'dropdown toggle'));
-
-    document.addEventListener("click", withErrorHandling(() => {
-        profileDropdown.style.display = "none";
-    }, 'document click'));
-
     const toggles = document.querySelectorAll(".listted");
-
     toggles.forEach((toggle) => {
         toggle.addEventListener("click", withErrorHandling((e) => {
             e.preventDefault();
             const submenu = toggle.nextElementSibling;
-
             if (submenu) {
                 submenu.style.display = submenu.style.display === "block" ? "none" : "block";
             }
-
             toggles.forEach((otherToggle) => {
                 if (otherToggle !== toggle) {
                     const otherSubmenu = otherToggle.nextElementSibling;
@@ -254,6 +199,6 @@ document.addEventListener("DOMContentLoaded", withErrorHandling(() => {
                     }
                 }
             });
-        }, 'submenu toggle'));
+        }, 'toggle submenu'));
     });
 }, 'DOMContentLoaded'));
