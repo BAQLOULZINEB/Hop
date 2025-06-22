@@ -59,20 +59,17 @@ $rendezvous = $stmt->fetchAll(PDO::FETCH_ASSOC);
         body, input, select, button, label, textarea {
             font-family: 'Montserrat', Arial, sans-serif;
         }
-        .content {
-            margin-left: 260px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background: transparent;
-        }
+        
         .illness-list {
-            margin: 40px auto 0 auto;
-            max-width: 1100px;
+            margin: 0;
+            max-width: none;
             background: rgba(30, 44, 70, 0.85);
             border-radius: 18px;
             box-shadow: 0 4px 24px rgba(0,0,0,0.13);
             padding: 32px 28px 24px 28px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
         }
         .illness-list h2 {
             color: #fff;
@@ -139,32 +136,72 @@ $rendezvous = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 padding: 10px 4px;
             }
         }
+        .table-wrapper {
+            flex-grow: 1;
+            overflow-y: auto;
+            position: relative;
+        }
     </style>
 </head>
 <body style="background-image: url('../images/background_page.jpg'); background-color: rgba(12, 36, 54, 0.55); background-position: center; background-size: cover; background-repeat: no-repeat;">   
     <div class="page">
-        <div class="dashboard">
+    <div class="dashboard">
             <div class="title">
                 <img class="logo" src="../images/download__15__14-removebg-preview.png" alt="">
                 <h2>HopCare</h2>
                 <i class="fa-solid fa-bars toggle"></i>
             </div>
             <ul class="links">
-                <li><a href="admin_dashboard.php"><i class="fa-solid fa-cubes fa-fw"></i><span>Dashboard</span></a></li>
+                <li>
+                    <a href="admin_dashboard.php">
+                        <i class="fa-solid fa-cubes fa-fw"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
                 <li class="num num1">
-                    <a class="listted" href="doctors.php"><i class="fa-solid fa-user-nurse fa-fw"></i><span>Médecins</span><i class="fa-solid fa-angle-right tog"></i></a>
-                    <div class="list one" style="display: none;"><a href="doctors.php">Voir les médecins</a><a href="add_doctor.php">Ajouter un médecin</a></div>
+                    <a class="listted" href="doctors.php">
+                        <i class="fa-solid fa-user-nurse fa-fw"></i>
+                        <span>Médecins</span>
+                        <i class="fa-solid fa-angle-right tog"></i>
+                    </a>
+                    <div class="list one" style="display: none;">
+                        <a href="doctors.php">Voir les médecins</a>
+                        <a href="add_doctor.php">Ajouter un médecin</a>
+                    </div>
                 </li>
                 <li class="num num2">
-                    <a class="listted" href="departments.php"><i class="fa-solid fa-people-group fa-fw"></i><span>Spécialités</span><i class="fa-solid fa-angle-right tog"></i></a>
-                    <div class="list two" style="display: none;"><a href="departments.php">Voir les spécialités</a></div>
+                    <a  href="departments.php">
+                        <i class="fa-solid fa-people-group fa-fw"></i>
+                        <span>Spécialités</span>  
+                    </a>
+                    
                 </li>
-                <li><a href="patients.php"><i class="fa-solid fa-people-arrows fa-fw"></i><span>Patients</span></a></li>
-                <li><a href="rendezvous.php"><i class="fa-solid fa-calendar-check fa-fw"></i><span>Rendez-vous</span></a></li>
-                <li><a href="pharmacy.php"><i class="fa-solid fa-hand-holding-medical fa-fw"></i><span>Pharmacie</span></a></li>
-                <li><a href="reports.php"><i class="fa-solid fa-file-signature fa-fw"></i><span>Rapports</span></a></li>
-                <li><a href="charts.php"><i class="fa-regular fa-comments fa-fw"></i><span>Charts</span></a></li>
-                <li><a href="settings.php"><i class="fa-solid fa-gear fa-fw"></i><span>Paramètres</span></a></li>
+                <li class="num num3">
+                    <a class="listted" href="#">
+                        <i class="fa-solid fa-people-arrows fa-fw"></i>
+                        <span>Patients</span>
+                        <i class="fa-solid fa-angle-right tog"></i>
+                    </a>
+                    <div class="list three" style="display: none;">
+                        <a href="patients.php">Voir les patients</a>
+                        <a href="add_patient.php">Ajouter un patient</a>
+                    </div>
+                </li>
+                <li>
+                    <a href="rendezvous.php">
+                        <i class="fa-solid fa-calendar-check fa-fw"></i>
+                        <span>Rendez-vous</span>
+                    </a>
+                </li>
+               
+                
+                 <li>
+                    <a href="patient_mesures.php">
+                        <i class="fa-regular fa-comments fa-fw"></i>
+                        <span>Charts</span>
+                    </a>
+                </li>
+                
             </ul>
             <form method="post" class="log-out">
                 <button type="submit" name="logout">
@@ -209,47 +246,49 @@ $rendezvous = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
             <div class="illness-list">
                 <h2>Liste des rendez-vous à valider</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Patient</th>
-                            <th>Médecin</th>
-                            <th>Spécialité</th>
-                            <th>Date & Heure</th>
-                            <th>Statut</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach ($rendezvous as $rdv): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($rdv['patient_nom']) ?></td>
-                            <td><?= htmlspecialchars($rdv['medecin_nom']) ?></td>
-                            <td><?= htmlspecialchars($rdv['specialite']) ?></td>
-                            <td><?= htmlspecialchars($rdv['date_rendezvous']) ?></td>
-                            <td><?= htmlspecialchars($rdv['statut']) ?></td>
-                            <td>
-                                <?php if ($rdv['statut'] !== 'confirmé'): ?>
-                                <form method="post" style="display:inline;">
-                                    <input type="hidden" name="patient_id" value="<?= $rdv['patient_id'] ?>">
-                                    <input type="hidden" name="medecin_id" value="<?= $rdv['medecin_id'] ?>">
-                                    <input type="hidden" name="date_rendezvous" value="<?= $rdv['date_rendezvous'] ?>">
-                                    <button type="submit" name="action" value="valider">Valider</button>
-                                </form>
-                                <?php endif; ?>
-                                <?php if ($rdv['statut'] !== 'annulé'): ?>
-                                <form method="post" style="display:inline;">
-                                    <input type="hidden" name="patient_id" value="<?= $rdv['patient_id'] ?>">
-                                    <input type="hidden" name="medecin_id" value="<?= $rdv['medecin_id'] ?>">
-                                    <input type="hidden" name="date_rendezvous" value="<?= $rdv['date_rendezvous'] ?>">
-                                    <button type="submit" name="action" value="refuser">Refuser</button>
-                                </form>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Médecin</th>
+                                <th>Spécialité</th>
+                                <th>Date & Heure</th>
+                                <th>Statut</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($rendezvous as $rdv): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($rdv['patient_nom']) ?></td>
+                                <td><?= htmlspecialchars($rdv['medecin_nom']) ?></td>
+                                <td><?= htmlspecialchars($rdv['specialite']) ?></td>
+                                <td><?= htmlspecialchars($rdv['date_rendezvous']) ?></td>
+                                <td><?= htmlspecialchars($rdv['statut']) ?></td>
+                                <td>
+                                    <?php if ($rdv['statut'] !== 'confirmé'): ?>
+                                    <form method="post" style="display:inline;">
+                                        <input type="hidden" name="patient_id" value="<?= $rdv['patient_id'] ?>">
+                                        <input type="hidden" name="medecin_id" value="<?= $rdv['medecin_id'] ?>">
+                                        <input type="hidden" name="date_rendezvous" value="<?= $rdv['date_rendezvous'] ?>">
+                                        <button type="submit" name="action" value="valider">Valider</button>
+                                    </form>
+                                    <?php endif; ?>
+                                    <?php if ($rdv['statut'] !== 'annulé'): ?>
+                                    <form method="post" style="display:inline;">
+                                        <input type="hidden" name="patient_id" value="<?= $rdv['patient_id'] ?>">
+                                        <input type="hidden" name="medecin_id" value="<?= $rdv['medecin_id'] ?>">
+                                        <input type="hidden" name="date_rendezvous" value="<?= $rdv['date_rendezvous'] ?>">
+                                        <button type="submit" name="action" value="refuser">Refuser</button>
+                                    </form>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

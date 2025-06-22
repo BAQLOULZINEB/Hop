@@ -1,7 +1,54 @@
 <?php
 require_once '../../backend/auth/session_handler.php';
 checkRole('patient');
-$patient_name = htmlspecialchars($_SESSION['user']['nom']);
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Get user data - handle both session formats
+$currentUser = null;
+$patient_name = '';
+$patient_id = null;
+
+if (isset($_SESSION['user'])) {
+    // If user data is stored in session
+    $currentUser = $_SESSION['user'];
+    $patient_name = htmlspecialchars($currentUser['nom']);
+    $patient_id = $currentUser['id'];
+} elseif (isset($_SESSION['user_id'])) {
+    // If only user_id is stored, fetch user data from database
+    try {
+        $db = new PDO("mysql:host=localhost;dbname=medical_system", "root", "");
+        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $db->exec("SET NAMES utf8mb4");
+        
+        $stmt = $db->prepare("SELECT * FROM utilisateur WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $currentUser = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($currentUser) {
+            $patient_name = htmlspecialchars($currentUser['nom']);
+            $patient_id = $currentUser['id'];
+        }
+    } catch(PDOException $e) {
+        // Handle database error
+        $error = 'Database error: ' . $e->getMessage();
+    }
+}
+
+// If we still don't have user data, redirect to login
+if (!$currentUser || !$patient_id) {
+    header('Location: ../../frontend/Authentification.php');
+    exit();
+}
+
+if (isset($_POST['logout'])) {
+    session_unset();
+    session_destroy();
+    header('Location: ../../frontend/Authentification.php');
+    exit();
+}
 
 // Connect to DB
 try {
@@ -36,7 +83,6 @@ sort($allSpecialties);
 // Gestion de la recommandation
 $message = '';
 if (isset($_POST['reco_medecin_id'], $_POST['note'], $_POST['motif'])) {
-    $patient_id = $_SESSION['user']['id'];
     $medecin_id = $_POST['reco_medecin_id'];
     $note = (int)$_POST['note'];
     $motif = trim($_POST['motif']);
@@ -58,7 +104,6 @@ if (isset($_POST['reco_medecin_id'], $_POST['note'], $_POST['motif'])) {
 
 // Gestion de la prise de rendez-vous
 if (isset($_POST['specialite'], $_POST['medecin_id'], $_POST['date_rendezvous']) && !isset($_POST['note'])) {
-    $patient_id = $_SESSION['user']['id'];
     $medecin_id = $_POST['medecin_id'];
     $date_rendezvous = $_POST['date_rendezvous'];
     $conflict = $db->prepare("SELECT COUNT(*) FROM rendez_vous WHERE medecin_id = ? AND date_rendezvous = ? AND statut != 'annulé'");
@@ -95,10 +140,10 @@ if ($filter_nom !== '') {
     $params[] = $filter_nom . "%";
 }
 if ($filter_stars > 0) {
-    $sql .= " HAVING (avg_note >= ? OR avg_note IS NULL)";
+    $sql .= " HAVING avg_note >= ?";
     $params[] = $filter_stars;
 }
-$sql .= " ORDER BY u.nom";
+$sql .= " ORDER BY avg_note DESC, u.nom";
 $stmt = $db->prepare($sql);
 $stmt->execute($params);
 $doctors = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -168,26 +213,24 @@ if (!empty($doctors)) {
             overflow-y: auto;
             padding: 20px;
             background: transparent;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            display: block;
             min-height: 80vh;
         }
         .container {
             max-width: 1100px;
             margin: 0 auto;
             padding: 20px;
+            width: 100%;
         }
         .search-container {
             background: rgba(255, 255, 255, 0.95);
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            position: sticky;
-            top: 20px;
+            margin: 0 32px 40px 32px;
+            position: relative;
             z-index: 90;
+            width: calc(100% - 64px);
         }
         .search-row {
             display: flex;
@@ -246,6 +289,7 @@ if (!empty($doctors)) {
             max-width: unset;
             margin-left: 0;
             margin-right: 0;
+            margin-top: 24px;
         }
         .doctor-card:hover {
             box-shadow: 0 8px 32px rgba(44,62,80,0.18);
@@ -369,6 +413,36 @@ if (!empty($doctors)) {
         .main-content::-webkit-scrollbar-thumb:hover {
             background: rgba(14, 47, 68, 0.5);
         }
+        .dashboard .log-out {
+            width: 80%;
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        .dashboard .log-out button {
+            padding: 5px;
+            border-radius: 10px;
+            width: 100%;
+            background-color: transparent;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            transition: .3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .dashboard .log-out button:hover {
+            background-color: #eb51518a;
+        }
+        .dashboard .log-out button span {
+            margin-right: 10px;
+            font-size: 14px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body style="background-image: url('../images/background_page.jpg'); background-color: rgba(12, 36, 54, 0.55); background-position: center; background-size: cover; background-repeat: no-repeat;">   
@@ -380,13 +454,20 @@ if (!empty($doctors)) {
                 <i class="fa-solid fa-bars toggle"></i>
             </div>
             <ul class="links">
-                <li><a href="patient_dashboard.php"><i class="fa-solid fa-cubes fa-fw"></i><span>Dashboard</span></a></li>
-                <li><a href="appointments.php"><i class="fa-solid fa-calendar-check fa-fw"></i><span>My Appointments</span></a></li>
-                <li><a href="book_appointment.php"><i class="fa-solid fa-calendar-plus fa-fw"></i><span>Book Appointment</span></a></li>
-                <li><a href="medical_records.php"><i class="fa-solid fa-file-medical fa-fw"></i><span>Medical Records</span></a></li>
-                <li><a href="prescriptions.php"><i class="fa-solid fa-prescription fa-fw"></i><span>Prescriptions</span></a></li>
-                <li><a href="billing.php"><i class="fa-solid fa-file-invoice-dollar fa-fw"></i><span>Billing</span></a></li>
-                <li><a href="messages.php"><i class="fa-solid fa-message fa-fw"></i><span>Messages</span></a></li>
+                <li>
+                    <a href="patient_dashboard.php">
+                        <i class="fa-solid fa-cubes fa-fw"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+               
+                <li>
+                    <a href="book_appointment.php">
+                        <i class="fa-solid fa-calendar-plus fa-fw"></i>
+                        <span>Book Appointment</span>
+                    </a>
+                </li>
+               
             </ul>
             <form method="post" class="log-out">
                 <button type="submit" name="logout">
@@ -423,55 +504,54 @@ if (!empty($doctors)) {
                     </div>
                 </div>
             </div>
-            <div class="main-content" style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 80vh;">
+            <div class="search-container">
+                <form id="searchForm" method="post" action="">
+                    <div class="search-row">
+                        <div class="search-field">
+                            <label for="specialite">Spécialité :</label>
+                            <input type="text" 
+                                   name="specialite" 
+                                   id="specialite" 
+                                   list="specialtySuggestions" 
+                                   placeholder="Entrez ou sélectionnez une spécialité" 
+                                   autocomplete="off"
+                                   value="<?php echo htmlspecialchars($specialite); ?>">
+                            <datalist id="specialtySuggestions">
+                                <?php foreach ($allSpecialties as $specialty): ?>
+                                    <option value="<?php echo htmlspecialchars($specialty); ?>">
+                                        <?php echo htmlspecialchars($specialty); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </datalist>
+                        </div>
+                        <div class="search-field">
+                            <label for="filter_nom">Rechercher un médecin :</label>
+                            <input type="text" 
+                                   name="filter_nom" 
+                                   id="filter_nom" 
+                                   placeholder="Commencez à taper le nom du médecin..."
+                                   value="<?php echo htmlspecialchars($filter_nom); ?>"
+                                   autocomplete="off">
+                            <span class="loading">Recherche en cours...</span>
+                        </div>
+                        <div class="search-field">
+                            <label for="filter_stars">Note minimale :</label>
+                            <select name="filter_stars" id="filter_stars">
+                                <option value="0" <?php if($filter_stars==0) echo 'selected'; ?>>Toutes</option>
+                                <option value="1" <?php if($filter_stars==1) echo 'selected'; ?>>1+ ★</option>
+                                <option value="2" <?php if($filter_stars==2) echo 'selected'; ?>>2+ ★★</option>
+                                <option value="3" <?php if($filter_stars==3) echo 'selected'; ?>>3+ ★★★</option>
+                                <option value="4" <?php if($filter_stars==4) echo 'selected'; ?>>4+ ★★★★</option>
+                                <option value="5" <?php if($filter_stars==5) echo 'selected'; ?>>5 ★★★★★</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="main-content">
                 <div class="container">
                     <?php if (isset($message) && $message) echo $message; ?>
                     
-                    <div class="search-container">
-                        <form id="searchForm" method="post" action="">
-                            <div class="search-row">
-                                <div class="search-field">
-                                    <label for="specialite">Spécialité :</label>
-                                    <input type="text" 
-                                           name="specialite" 
-                                           id="specialite" 
-                                           list="specialtySuggestions" 
-                                           placeholder="Entrez ou sélectionnez une spécialité" 
-                                           autocomplete="off"
-                                           value="<?php echo htmlspecialchars($specialite); ?>">
-                                    <datalist id="specialtySuggestions">
-                                        <?php foreach ($allSpecialties as $specialty): ?>
-                                            <option value="<?php echo htmlspecialchars($specialty); ?>">
-                                                <?php echo htmlspecialchars($specialty); ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </datalist>
-                                </div>
-                                <div class="search-field">
-                                    <label for="filter_nom">Rechercher un médecin :</label>
-                                    <input type="text" 
-                                           name="filter_nom" 
-                                           id="filter_nom" 
-                                           placeholder="Commencez à taper le nom du médecin..."
-                                           value="<?php echo htmlspecialchars($filter_nom); ?>"
-                                           autocomplete="off">
-                                    <span class="loading">Recherche en cours...</span>
-                                </div>
-                                <div class="search-field">
-                                    <label for="filter_stars">Note minimale :</label>
-                                    <select name="filter_stars" id="filter_stars">
-                                        <option value="0" <?php if($filter_stars==0) echo 'selected'; ?>>Toutes</option>
-                                        <option value="1" <?php if($filter_stars==1) echo 'selected'; ?>>1+ ★</option>
-                                        <option value="2" <?php if($filter_stars==2) echo 'selected'; ?>>2+ ★★</option>
-                                        <option value="3" <?php if($filter_stars==3) echo 'selected'; ?>>3+ ★★★</option>
-                                        <option value="4" <?php if($filter_stars==4) echo 'selected'; ?>>4+ ★★★★</option>
-                                        <option value="5" <?php if($filter_stars==5) echo 'selected'; ?>>5 ★★★★★</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-
                     <div id="doctorsList">
                         <?php if (!empty($doctors)): ?>
                             <?php foreach ($doctors as $doc): ?>

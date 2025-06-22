@@ -132,24 +132,28 @@ toggleButton.addEventListener('click', withErrorHandling(() => {
 }, 'toggleButton click handler'));
 
 // Gestion des listes de médecins
-if (doctorsListOne.classList.contains("active")) {
+if (doctorsListOne && doctorsListOne.classList.contains("active")) {
     firstList.style.display = "block";
     tog[0].classList.replace("fa-angle-right", "fa-angle-down");
 }
 
-if (doctorsListTwo.classList.contains("active")) {
+if (doctorsListTwo && doctorsListTwo.classList.contains("active")) {
     secondList.style.display = "block";
     tog[1].classList.replace("fa-angle-right", "fa-angle-down");
 }
 
 // Gestionnaires des boutons income et close
-incomeButton.onclick = withErrorHandling(() => {
-    showHide.style.display = "block";
-}, 'income button click');
+if (incomeButton) {
+    incomeButton.onclick = withErrorHandling(() => {
+        showHide.style.display = "block";
+    }, 'income button click');
+}
 
-closeButton.onclick = withErrorHandling(() => {
-    showHide.style.display = "none";
-}, 'close button click');
+if (closeButton) {
+    closeButton.onclick = withErrorHandling(() => {
+        showHide.style.display = "none";
+    }, 'close button click');
+}
 
 // Fonction du calendrier
 function renderCalendar() {

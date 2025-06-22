@@ -3,6 +3,16 @@ require_once '../../backend/auth/session_handler.php';
 require_once '../../backend/config/database.php';
 checkRole('admin');
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (isset($_POST['logout'])) {
+    session_unset();
+    session_destroy();
+    header('Location: ../../frontend/Authentification.php');
+    exit();
+}
+
 $error = '';
 $success = '';
 
@@ -70,137 +80,136 @@ try {
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>Patients Management</title>
     <style>
-        .action-buttons {
-            display: flex;
-            gap: 10px;
+        body { font-family: 'Segoe UI', Arial, sans-serif; }
+        .illness-list { 
+            width: 100%; 
+            margin: 0 auto; 
+            padding-bottom: 0; 
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            background: #fff; 
+            border-radius: 10px; 
+            overflow: hidden; 
+            margin-bottom: 0;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+        th, td { 
+            padding: 12px 10px; 
+            text-align: left; 
+            font-size: 1.05em;
+            color: #222;
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        thead tr { 
+            background: #f2f2f2; 
+            color: #0e2f44; 
+            font-weight: bold;
+        }
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .action-buttons { 
+            display: flex; 
+            gap: 10px; 
         }
         .edit-btn, .delete-btn, .save-btn, .cancel-btn {
-            padding: 5px 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
+            padding: 6px 14px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 15px; 
+            transition: all 0.3s;
         }
-        .edit-btn {
-            background-color: #2e86c1;
-            color: white;
+        .edit-btn { 
+            background: #3498db; 
+            color: #fff; 
         }
-        .delete-btn {
-            background-color: #e74c3c;
-            color: white;
+        .delete-btn { 
+            background: #e74c3c; 
+            color: #fff; 
         }
-        .save-btn {
-            background-color: #27ae60;
-            color: white;
+        .save-btn { 
+            background: #27ae60; 
+            color: #fff; 
         }
-        .cancel-btn {
-            background-color: #95a5a6;
-            color: white;
+        .cancel-btn { 
+            background: #95a5a6; 
+            color: #fff; 
         }
-        .edit-btn:hover { background-color: #2874a6; }
-        .delete-btn:hover { background-color: #c0392b; }
-        .save-btn:hover { background-color: #219a52; }
-        .cancel-btn:hover { background-color: #7f8c8d; }
+        .edit-btn:hover { 
+            background: #217dbb; 
+        }
+        .delete-btn:hover { 
+            background: #c0392b; 
+        }
+        .save-btn:hover { 
+            background: #219a52; 
+        }
+        .cancel-btn:hover { 
+            background: #7f8c8d; 
+        }
         
-        .editable {
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 3px;
+        .editable { 
+            cursor: pointer; 
+            border-radius: 3px; 
         }
-        .editable:hover {
-            background-color: #f0f0f0;
+        .editable:hover { 
+            background: #f0f0f0; 
         }
-        .editing {
-            background-color: #fff;
-            border: 1px solid #3498db;
-            padding: 5px;
-            border-radius: 3px;
+        .editing { 
+            background: #fff; 
+            border: 1px solid #3498db; 
         }
-        .editing input, .editing select {
-            width: 100%;
-            padding: 5px;
-            border: 1px solid #ddd;
-            border-radius: 3px;
+        .editing input, .editing select { 
+            width: 100%; 
+            padding: 5px; 
+            border: 1px solid #ddd; 
+            border-radius: 3px; 
         }
-        .add-patient-btn {
-            background: linear-gradient(120deg, #0e2f44, #1a5276);
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
+        .add-patient-btn { 
+            background: linear-gradient(120deg, #0e2f44, #1a5276); 
+            color: white; 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            margin: 0 0 12px 0; 
+            transition: all 0.3s; 
+            display: block; 
         }
-        .add-patient-btn:hover {
-            background: linear-gradient(120deg, #1a5276, #0e2f44);
+        .add-patient-btn:hover { 
+            background: linear-gradient(120deg, #1a5276, #0e2f44); 
         }
-        /* Inline edit improvements */
-        .patients-table .editing-row {
-            background: #e3f1fa !important;
-            box-shadow: 0 2px 12px rgba(52,152,219,0.10);
-            transition: background 0.2s, box-shadow 0.2s;
+        .header-search-bar-container { 
+            display: flex; 
+            align-items: center; 
+            gap: 18px; 
         }
-        .patients-table input[type="text"],
-        .patients-table input[type="email"],
-        .patients-table input[type="date"],
-        .patients-table select {
-            padding: 7px 10px;
-            border: 1.5px solid #b2c6d6;
-            border-radius: 6px;
-            font-size: 1em;
-            background: #f6fafd;
-            color: #0e2f44;
-            margin: 0 2px;
-            width: 100%;
-            box-sizing: border-box;
-            transition: border 0.2s;
+        .header-search-bar { 
+            display: flex; 
+            gap: 0; 
         }
-        .patients-table input:focus,
-        .patients-table select:focus {
-            border: 1.5px solid #3498db;
-            outline: none;
+        .search-bar input[type="search"] {
+            color: #222;
             background: #fff;
+            border: 1px solid #bbb;
+            border-radius: 6px;
+            padding: 6px 12px;
         }
-        .patients-table .action-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            align-items: center;
-        }
-        .patients-table .save-btn, .patients-table .cancel-btn {
-            padding: 7px 18px;
+        .search-bar button {
+            color: #fff;
+            background: #0e2f44;
             border: none;
             border-radius: 6px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s, box-shadow 0.2s;
-            box-shadow: 0 1px 4px rgba(52,152,219,0.08);
+            padding: 6px 18px;
+            font-weight: bold;
+            margin-left: 8px;
         }
-        .patients-table .save-btn {
-            background: #27ae60;
-            color: #fff;
-        }
-        .patients-table .save-btn:hover {
-            background: #219a52;
-        }
-        .patients-table .cancel-btn {
-            background: #e74c3c;
-            color: #fff;
-        }
-        .patients-table .cancel-btn:hover {
-            background: #c0392b;
-        }
-        @media (max-width: 900px) {
-            .patients-table input, .patients-table select {
-                font-size: 0.95em;
-            }
-            .patients-table .save-btn, .patients-table .cancel-btn {
-                font-size: 0.95em;
-                padding: 6px 10px;
-            }
+        .search-bar button:hover {
+            background: #1a5276;
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -350,7 +359,7 @@ try {
 </head>
 <body style="background-image: url('../images/background_page.jpg'); background-color: rgba(12, 36, 54, 0.55); background-position: center; background-size: cover; background-repeat: no-repeat;">   
     <div class="page">
-        <div class="dashboard">
+    <div class="dashboard">
             <div class="title">
                 <img class="logo" src="../images/download__15__14-removebg-preview.png" alt="">
                 <h2>HopCare</h2>
@@ -379,6 +388,7 @@ try {
                         <i class="fa-solid fa-people-group fa-fw"></i>
                         <span>Spécialités</span>  
                     </a>
+                    
                 </li>
                 <li class="num num3">
                     <a class="listted" href="#">
@@ -397,24 +407,15 @@ try {
                         <span>Rendez-vous</span>
                     </a>
                 </li>
-                <li>
-                    <a href="reports.php">
-                        <i class="fa-solid fa-file-signature fa-fw"></i>
-                        <span>Rapports</span>
-                    </a>
-                </li>
+               
+                
                  <li>
                     <a href="charts.php">
                         <i class="fa-regular fa-comments fa-fw"></i>
                         <span>Charts</span>
                     </a>
                 </li>
-                <li>
-                    <a href="settings.php">
-                        <i class="fa-solid fa-gear fa-fw"></i>
-                        <span>Paramètres</span>
-                    </a>
-                </li>
+                
             </ul>
             <form method="post" class="log-out">
                 <button type="submit" name="logout">
@@ -433,8 +434,8 @@ try {
                     </div>
                 </div>
                 <div class="header-center">
-                    <form action="" method="post" class="search-bar">
-                        <input type="search" name="search_query" placeholder="Search patients">
+                    <form action="" method="get" class="search-bar">
+                        <input type="search" name="search" placeholder="Search patients">
                         <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
                     </form>
                 </div>
@@ -481,7 +482,6 @@ try {
                             <td>Nom</td>
                             <td>Email</td>
                             <td>Date de naissance</td>
-                            <td>Adresse</td>
                             <td colspan="2">Actions</td>
                         </tr>
                     </thead>
@@ -492,7 +492,6 @@ try {
                                     <td class="editable" data-field="nom"><?php echo htmlspecialchars($patient['nom']); ?></td>
                                     <td class="editable" data-field="email"><?php echo htmlspecialchars($patient['email']); ?></td>
                                     <td class="editable" data-field="date_naissance"><?php echo htmlspecialchars($patient['date_naissance']); ?></td>
-                                    <td class="editable" data-field="adresse"><?php echo htmlspecialchars($patient['adresse'] ?? 'N/A'); ?></td>
                                     <td colspan="2" class="action-buttons">
                                         <button class="edit-btn" onclick="startEditing($(this).closest('tr'))">
                                             <i class="fa-solid fa-pen-to-square"></i> Edit
@@ -508,7 +507,7 @@ try {
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="6">No patients found</td>
+                                <td colspan="5">No patients found</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>

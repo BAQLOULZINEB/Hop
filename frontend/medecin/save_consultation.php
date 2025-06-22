@@ -1,13 +1,27 @@
 <?php
 require_once '../../backend/auth/session_handler.php';
 checkRole('medecin');
-
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (isset($_POST['logout'])) {
+    session_unset();
+    session_destroy();
+    header('Location: ../../frontend/Authentification.php');
+    exit();
+}
 header('Content-Type: application/json');
 
 try {
     $db = new PDO("mysql:host=localhost;dbname=medical_system", "root", "");
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $db->exec("SET NAMES utf8mb4");
+
+    // Check if remarques column exists, if not add it
+    $checkColumn = $db->query("SHOW COLUMNS FROM consultation LIKE 'remarques'");
+    if ($checkColumn->rowCount() == 0) {
+        $db->exec("ALTER TABLE consultation ADD COLUMN remarques TEXT");
+    }
 
     // Start transaction
     $db->beginTransaction();

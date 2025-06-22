@@ -55,7 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="../css_files/master.css">
     <link rel="stylesheet" href="../css_files/all.min.css">
     <style>
-        /* Form only, ne touche pas à la structure globale du dashboard/header */
         .add-patient .forms input {
             border: 1px solid black;
             height: 30px;
@@ -174,24 +173,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </a>
                 </li>
                
-                <li>
-                    <a href="reports.php">
-                        <i class="fa-solid fa-file-signature fa-fw"></i>
-                        <span>Rapports</span>
-                    </a>
-                </li>
+                
                  <li>
                     <a href="charts.php">
                         <i class="fa-regular fa-comments fa-fw"></i>
                         <span>Charts</span>
                     </a>
                 </li>
-                <li>
-                    <a href="settings.php">
-                        <i class="fa-solid fa-gear fa-fw"></i>
-                        <span>Paramètres</span>
-                    </a>
-                </li>
+                
             </ul>
             <form method="post" class="log-out">
                 <button type="submit" name="logout">

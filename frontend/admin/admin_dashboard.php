@@ -2,6 +2,55 @@
 require_once '../../backend/auth/session_handler.php';
 checkRole('admin');
 
+// Fetch user info from session
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Get user data - handle both session formats
+$currentUser = null;
+$admin_name = '';
+$admin_id = null;
+
+if (isset($_SESSION['user'])) {
+    // If user data is stored in session
+    $currentUser = $_SESSION['user'];
+    $admin_name = htmlspecialchars($currentUser['nom']);
+    $admin_id = $currentUser['id'];
+} elseif (isset($_SESSION['user_id'])) {
+    // If only user_id is stored, fetch user data from database
+    try {
+        $db = new PDO("mysql:host=localhost;dbname=medical_system", "root", "");
+        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $db->exec("SET NAMES utf8mb4");
+        
+        $stmt = $db->prepare("SELECT * FROM utilisateur WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $currentUser = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($currentUser) {
+            $admin_name = htmlspecialchars($currentUser['nom']);
+            $admin_id = $currentUser['id'];
+        }
+    } catch(PDOException $e) {
+        // Handle database error
+        $error = 'Database error: ' . $e->getMessage();
+    }
+}
+
+// If we still don't have user data, redirect to login
+if (!$currentUser || !$admin_id) {
+    header('Location: ../../frontend/Authentification.php');
+    exit();
+}
+
+if (isset($_POST['logout'])) {
+    session_unset();
+    session_destroy();
+    header('Location: ../../frontend/Authentification.php');
+    exit();
+}
+
 // Database connection
 try {
     $db = new PDO("mysql:host=localhost;dbname=medical_system", "root", "");
@@ -59,13 +108,66 @@ try {
     <title>Admin Dashboard</title>
     <style>
         .details {
-            margin-top: 30px;
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+           
+           
+            padding: 40px;
+        }
+        .main-details {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .m-d {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            min-width: 300px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .m-d:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.25);
+        }
+        .m-d i {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            color: #ffffff;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        .stat p {
+            margin: 8px 0;
+            color: #ffffff;
+            font-size: 1.2em;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .stat .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            margin-top: 10px;
+        }
+        .illnes { background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2)); }
+        .doctors { background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2)); }
+        .departments { background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2)); }
+        .appointments { background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2)); }
+        .profile-dropdown {
+            display: none !important;
         }
     </style>
 </head>
 <body style="background-image: url('../images/background_page.jpg'); background-color: rgba(12, 36, 54, 0.55); background-position: center; background-size: cover; background-repeat: no-repeat;">   
     <div class="page">
-        <div class="dashboard">
+    <div class="dashboard">
             <div class="title">
                 <img class="logo" src="../images/download__15__14-removebg-preview.png" alt="">
                 <h2>HopCare</h2>
@@ -114,24 +216,14 @@ try {
                     </a>
                 </li>
                
-                <li>
-                    <a href="reports.php">
-                        <i class="fa-solid fa-file-signature fa-fw"></i>
-                        <span>Rapports</span>
-                    </a>
-                </li>
+                
                  <li>
-                    <a href="charts.php">
+                    <a href="patient_mesures.php">
                         <i class="fa-regular fa-comments fa-fw"></i>
                         <span>Charts</span>
                     </a>
                 </li>
-                <li>
-                    <a href="settings.php">
-                        <i class="fa-solid fa-gear fa-fw"></i>
-                        <span>Paramètres</span>
-                    </a>
-                </li>
+                
             </ul>
             <form method="post" class="log-out">
                 <button type="submit" name="logout">
@@ -149,12 +241,7 @@ try {
                         <span class="subtitle">Hospital Management Dashboard</span>
                     </div>
                 </div>
-                <div class="header-center">
-                    <form action="" method="post" class="search-bar">
-                        <input type="search" name="search_query" placeholder="Search patients, doctors, or departments">
-                        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
-                    </form>
-                </div>
+               
                 <div class="header-right">
                     <div class="profile-menu">
                         <img src="../images/avatar.jpg" alt="Profile" class="avatar">
@@ -174,6 +261,18 @@ try {
                     </div>
                 </div>
             </div>
+            
+            <!-- User Profile Info -->
+            <?php if ($currentUser): ?>
+            <div class="profile-info" style="display: flex; align-items: center; gap: 24px; background: rgba(255,255,255,0.08); border-radius: 16px; padding: 24px 32px; margin: 24px 0; box-shadow: 0 2px 12px rgba(0,0,0,0.07); max-width: 500px;">
+                <img src="../images/avatar.jpg" alt="Avatar" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #fff;">
+                <div>
+                    <div style="font-size: 1.3em; font-weight: bold; color: #fff;">Name: <?php echo htmlspecialchars($currentUser['nom'] ?? ''); ?></div>
+                    <div style="color: #fff; margin-top: 4px;">Email: <?php echo htmlspecialchars($currentUser['email'] ?? ''); ?></div>
+                    <div style="color: #fff; margin-top: 4px;">Role: <?php echo htmlspecialchars($currentUser['role'] ?? ''); ?></div>
+                </div>
+            </div>
+            <?php endif; ?>
             
             <!-- Dashboard Statistics -->
             <div class="details">
@@ -209,54 +308,7 @@ try {
                 </div>
             </div>
 
-            <!-- Recent Activities Table -->
-            <div class="illness-list">
-                <table>
-                    <thead>
-                        <tr>
-                            <td colspan="2">Recent Activities</td>
-                            <td id="search" colspan="3">
-                                <form action="" method="post">
-                                    <input type="search" name="search" placeholder="Search activities">
-                                    <input class="b-s" type="submit" value="Search">
-                                </form>
-                            </td>
-                            <td id="logo" colspan="2">
-                                <img src="../images/download__15_-removebg-preview.png" alt="">
-                            </td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Activity</td>
-                            <td>User</td>
-                            <td>Date</td>
-                            <td>Time</td>
-                            <td>Status</td>
-                            <td colspan="2">Details</td>
-                        </tr>
-                        <?php if (isset($recentActivities) && !empty($recentActivities)): ?>
-                            <?php foreach ($recentActivities as $activity): ?>
-                                <tr>
-                                    <td>Appointment</td>
-                                    <td><?php echo htmlspecialchars($activity['patient_name']); ?></td>
-                                    <td><?php echo date('Y-m-d', strtotime($activity['date_rendezvous'])); ?></td>
-                                    <td><?php echo date('H:i', strtotime($activity['date_rendezvous'])); ?></td>
-                                    <td><?php echo htmlspecialchars($activity['statut']); ?></td>
-                                    <td colspan="2">
-                                        <a href="rendezvous.php?id=<?php echo $activity['patient_id']; ?>" class="view-btn">View Details</a>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="7">No recent activities found</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+            
     </div>
     <script src="../index.js"></script>
     <script>

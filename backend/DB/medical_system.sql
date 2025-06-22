@@ -44,7 +44,8 @@ CREATE TABLE `consultation` (
   `id` int(11) NOT NULL,
   `date_consultation` datetime NOT NULL,
   `medecin_id` int(11) NOT NULL,
-  `patient_id` int(11) NOT NULL
+  `patient_id` int(11) NOT NULL,
+  `remarques` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------

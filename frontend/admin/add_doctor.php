@@ -2,7 +2,12 @@
 require_once '../../backend/auth/session_handler.php';
 require_once '../../backend/config/database.php'; // Include database connection
 checkRole('admin');
-
+if (isset($_POST['logout'])) {
+    session_unset();
+    session_destroy();
+    header('Location: ../../frontend/Authentification.php');
+    exit();
+}
 // Common French medical specialties
 $commonSpecialties = [
     'Anesthésie-Réanimation',
@@ -37,13 +42,17 @@ $commonSpecialties = [
 // Fetch distinct specialities from the medecin table
 $existingSpecialities = [];
 try {
-    $stmt = $pdo->query("SELECT DISTINCT specialite FROM medecin WHERE specialite IS NOT NULL AND specialite != '' ORDER BY specialite");
+    $db = new PDO("mysql:host=localhost;dbname=medical_system;charset=utf8mb4", "root", "");
+    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $db->exec("SET NAMES utf8mb4");
+    $db->exec("SET CHARACTER SET utf8mb4");
+    $db->exec("SET character_set_connection=utf8mb4");
+    
+    // Get existing specialties
+    $stmt = $db->query("SELECT DISTINCT specialite FROM medecin WHERE specialite IS NOT NULL AND specialite != '' ORDER BY specialite");
     $existingSpecialities = $stmt->fetchAll(PDO::FETCH_COLUMN);
 } catch (PDOException $e) {
-    // Log error or handle it appropriately in the admin panel
-    error_log("Admin Add Doctor: Failed to fetch existing specialities: " . $e->getMessage());
-    // Optionally, display an error message on the page
-    // $error_message = "Error loading specialties. Please try again later.";
+    // handle error
 }
 
 // Combine database specialties with common specialties, removing duplicates
@@ -242,6 +251,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_doctor'])) {
             background-color: white;
         }
 
+        /* Make h2 white in the add-doctor section */
+        .add-doctor .title h2 {
+            color: white;
+        }
+
     </style>
 </head>
 <body style="background-image: url('../images/background_page.jpg'); background-color: rgba(12, 36, 54, 0.55); background-position: center; background-size: cover; background-repeat: no-repeat;">
@@ -295,24 +309,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_doctor'])) {
                     </a>
                 </li>
                
-                <li>
-                    <a href="reports.php">
-                        <i class="fa-solid fa-file-signature fa-fw"></i>
-                        <span>Rapports</span>
-                    </a>
-                </li>
+                
                  <li>
                     <a href="charts.php">
                         <i class="fa-regular fa-comments fa-fw"></i>
                         <span>Charts</span>
                     </a>
                 </li>
-                <li>
-                    <a href="settings.php">
-                        <i class="fa-solid fa-gear fa-fw"></i>
-                        <span>Paramètres</span>
-                    </a>
-                </li>
+                
             </ul>
             <form method="post" class="log-out">
                 <button type="submit" name="logout">

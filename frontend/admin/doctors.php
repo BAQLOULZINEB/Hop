@@ -2,6 +2,16 @@
 require_once '../../backend/auth/session_handler.php';
 checkRole('admin');
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (isset($_POST['logout'])) {
+    session_unset();
+    session_destroy();
+    header('Location: ../../frontend/Authentification.php');
+    exit();
+}
+
 $error = '';
 $success = '';
 
@@ -141,7 +151,7 @@ try {
                 }
             }
 
-            // Function to save changes
+           
             function saveChanges(row) {
                 const doctorId = $(row).data('id');
                 const data = {};
@@ -163,14 +173,14 @@ try {
                         success: function(response) {
                             const result = JSON.parse(response);
                             if (result.success) {
-                                // Update the row with new values
+                                // make the row editable
                                 Object.keys(data).forEach(field => {
                                     $(row).find(`[data-field="${field}"]`).html(data[field]);
                                 });
                                 alert('Doctor information updated successfully!');
                             } else {
                                 alert('Error updating doctor: ' + result.message);
-                                // Revert changes
+                                // revert the changes
                                 Object.keys(originalValues).forEach(field => {
                                     $(row).find(`[data-field="${field}"]`).html(originalValues[field]);
                                 });
@@ -262,7 +272,7 @@ try {
 </head>
 <body style="background-image: url('../images/background_page.jpg'); background-color: rgba(12, 36, 54, 0.55); background-position: center; background-size: cover; background-repeat: no-repeat;">   
     <div class="page">
-        <div class="dashboard">
+    <div class="dashboard">
             <div class="title">
                 <img class="logo" src="../images/download__15__14-removebg-preview.png" alt="">
                 <h2>HopCare</h2>
@@ -291,6 +301,7 @@ try {
                         <i class="fa-solid fa-people-group fa-fw"></i>
                         <span>Spécialités</span>  
                     </a>
+                    
                 </li>
                 <li class="num num3">
                     <a class="listted" href="#">
@@ -309,24 +320,15 @@ try {
                         <span>Rendez-vous</span>
                     </a>
                 </li>
-                <li>
-                    <a href="reports.php">
-                        <i class="fa-solid fa-file-signature fa-fw"></i>
-                        <span>Rapports</span>
-                    </a>
-                </li>
+               
+                
                  <li>
                     <a href="charts.php">
                         <i class="fa-regular fa-comments fa-fw"></i>
                         <span>Charts</span>
                     </a>
                 </li>
-                <li>
-                    <a href="settings.php">
-                        <i class="fa-solid fa-gear fa-fw"></i>
-                        <span>Paramètres</span>
-                    </a>
-                </li>
+                
             </ul>
             <form method="post" class="log-out">
                 <button type="submit" name="logout">

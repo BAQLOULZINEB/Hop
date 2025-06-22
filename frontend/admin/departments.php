@@ -2,7 +2,17 @@
 require_once '../../backend/auth/session_handler.php';
 checkRole('admin');
 
-// Fetch all unique specialties from the medecin table
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (isset($_POST['logout'])) {
+    session_unset();
+    session_destroy();
+    header('Location: ../../frontend/Authentification.php');
+    exit();
+}
+
+// Fetch all 
 $specialties = [];
 try {
     $db = new PDO("mysql:host=localhost;dbname=medical_system;charset=utf8", "root", "");
@@ -73,9 +83,86 @@ $colors = [
             margin-bottom: 18px;
             margin-top: 18px;
         }
+        /* Sidebar/dashboard menu styles copied from admin_dashboard.php */
+        .dashboard .links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .dashboard .links li {
+            margin-bottom: 18px;
+        }
+        .dashboard .links li a {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            text-decoration: none;
+            font-size: 1em;
+            font-weight: 600;
+            border-radius: 14px;
+            padding: 12px 18px;
+            transition: background 0.18s, color 0.18s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .dashboard .links li a:hover, .dashboard .links li a.active, .dashboard .links li a.listted:focus {
+            background: rgba(255,255,255,0.18);
+            color: #fff;
+        }
+        .dashboard .links li a i {
+            font-size: 1.15em;
+            margin-right: 12px;
+        }
+        .dashboard .links li a span {
+            font-size: 1em;
+        }
+        .dashboard .links .list a {
+            font-size: 0.98em;
+            padding: 10px 18px 10px 48px;
+            background: none;
+            color: #fff;
+            border-radius: 10px;
+        }
+        .dashboard .links .list a:hover {
+            background: rgba(255,255,255,0.13);
+        }
+        .dashboard .title h2 {
+            font-size: 1.5em;
+            color: #fff;
+            margin-left: 10px;
+        }
+        .dashboard .log-out button {
+            width: 100%;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1em;
+            font-weight: 600;
+            padding: 12px 0 12px 0;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            border-radius: 0 0 18px 18px;
+            transition: background 0.18s;
+        }
+        .dashboard .log-out button:hover {
+            background: rgba(255,255,255,0.13);
+        }
+        .dashboard .log-out button i {
+            font-size: 1.1em;
+        }
         @media (max-width: 900px) {
             .departments-boxes { gap: 16px; }
             .department-box { min-width: 140px; max-width: 98vw; font-size: 1em; padding: 18px 10px 14px 18px; }
+            .dashboard .links li a {
+                font-size: 0.98em;
+                padding: 10px 12px;
+            }
+            .dashboard .links li a i {
+                font-size: 1em;
+            }
         }
     </style>
 </head>
@@ -130,24 +217,14 @@ $colors = [
                     </a>
                 </li>
                
-                <li>
-                    <a href="reports.php">
-                        <i class="fa-solid fa-file-signature fa-fw"></i>
-                        <span>Rapports</span>
-                    </a>
-                </li>
+                
                  <li>
                     <a href="charts.php">
                         <i class="fa-regular fa-comments fa-fw"></i>
                         <span>Charts</span>
                     </a>
                 </li>
-                <li>
-                    <a href="settings.php">
-                        <i class="fa-solid fa-gear fa-fw"></i>
-                        <span>Paramètres</span>
-                    </a>
-                </li>
+                
             </ul>
             <form method="post" class="log-out">
                 <button type="submit" name="logout">

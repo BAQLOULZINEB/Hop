@@ -3,6 +3,16 @@ require_once '../../backend/auth/session_handler.php';
 checkRole('medecin');
 
 $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (isset($_POST['logout'])) {
+    session_unset();
+    session_destroy();
+    header('Location: ../../frontend/Authentification.php');
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html dir="ltr" lang="fr">
@@ -48,12 +58,6 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                     </a>
                 </li>
                 <li>
-                    <a href="prescriptions.php">
-                        <i class="fa-solid fa-prescription fa-fw"></i>
-                        <span>Prescriptions</span>
-                    </a>
-                </li>
-                <li>
                     <a href="medical_records.php">
                         <i class="fa-solid fa-file-medical fa-fw"></i>
                         <span>Medical Records</span>
@@ -63,12 +67,6 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                     <a href="schedule.php">
                         <i class="fa-solid fa-clock fa-fw"></i>
                         <span>Schedule</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="messages.php">
-                        <i class="fa-solid fa-message fa-fw"></i>
-                        <span>Messages</span>
                     </a>
                 </li>
             </ul>
@@ -87,12 +85,6 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                         <h1>Welcome Dr. <span id="doctor-name"><?php echo $doctor_name; ?></span></h1>
                         <span class="subtitle">Doctor Dashboard</span>
                     </div>
-                </div>
-                <div class="header-center">
-                    <form action="" method="post" class="search-bar">
-                        <input type="search" name="search_query" placeholder="Search patients or appointments">
-                        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
-                    </form>
                 </div>
                 <div class="header-right">
                     <div class="profile-menu">
@@ -117,17 +109,25 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
 
             <!-- Patients Table -->
             <div class="illness-list">
-                <h2>Mes Patients du Jour</h2>
-                <table>
+                <div class="table-header">
+                    <h2>Mes Patients</h2>
+                    <div class="filter-buttons">
+                        <button id="allPatientsBtn" class="filter-btn active" onclick="showAllPatients()">Tous les Patients</button>
+                        <button id="todayPatientsBtn" class="filter-btn" onclick="showTodayPatients()">Patients d'Aujourd'hui</button>
+                    </div>
+                </div>
+                <table id="patientsTable" class="patient-list-table">
                     <thead>
                         <tr>
                             <th>Nom</th>
                             <th>Email</th>
-                            <th>Heure de RDV</th>
+                            <th>Date de Naissance</th>
+                            <th>Dernier RDV</th>
+                            <th>Prochain RDV</th>
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="patientsTableBody">
                         <?php
                         try {
                             $db = new PDO("mysql:host=localhost;dbname=medical_system", "root", "");
@@ -135,28 +135,52 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                             $db->exec("SET NAMES utf8mb4");
                             $medecin_id = $_SESSION['user']['id'];
                             
-                            // Get today's patients with confirmed appointments
-                            $sql = "SELECT u.id, u.nom, u.email, r.date_rendezvous
-                                    FROM rendez_vous r
-                                    JOIN patient p ON r.patient_id = p.id
-                                    JOIN utilisateur u ON p.id = u.id
-                                    WHERE r.medecin_id = :medecin_id 
-                                    AND r.statut = 'confirmé'
-                                    AND DATE(r.date_rendezvous) = CURDATE()
-                                    ORDER BY r.date_rendezvous";
+                            // Get all patients who have had appointments with this doctor
+                            $sql = "SELECT DISTINCT 
+                                    u.id, 
+                                    u.nom, 
+                                    u.email, 
+                                    p.date_naissance,
+                                    (SELECT MAX(r.date_rendezvous) 
+                                     FROM rendez_vous r 
+                                     WHERE r.patient_id = p.id 
+                                     AND r.medecin_id = :medecin_id 
+                                     AND r.date_rendezvous < CURDATE()) as dernier_rdv,
+                                    (SELECT MIN(r.date_rendezvous) 
+                                     FROM rendez_vous r 
+                                     WHERE r.patient_id = p.id 
+                                     AND r.medecin_id = :medecin_id 
+                                     AND r.date_rendezvous >= CURDATE()
+                                     AND r.statut = 'confirmé') as prochain_rdv,
+                                    (SELECT COUNT(*) 
+                                     FROM rendez_vous r 
+                                     WHERE r.patient_id = p.id 
+                                     AND r.medecin_id = :medecin_id 
+                                     AND DATE(r.date_rendezvous) = CURDATE()
+                                     AND r.statut = 'confirmé') as rdv_aujourd_hui
+                                   FROM rendez_vous r
+                                   JOIN patient p ON r.patient_id = p.id
+                                   JOIN utilisateur u ON p.id = u.id
+                                   WHERE r.medecin_id = :medecin_id 
+                                   ORDER BY u.nom";
                             
                             $stmt = $db->prepare($sql);
                             $stmt->execute([':medecin_id' => $medecin_id]);
-                            $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            $allPatients = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             
-                            if (count($patients) === 0) {
-                                echo '<tr><td colspan="4">Aucun patient programmé pour aujourd\'hui.</td></tr>';
+                            if (count($allPatients) === 0) {
+                                echo '<tr><td colspan="6">Aucun patient trouvé.</td></tr>';
                             } else {
-                                foreach ($patients as $patient) {
-                                    echo '<tr>';
+                                foreach ($allPatients as $patient) {
+                                    $hasTodayAppointment = $patient['rdv_aujourd_hui'] > 0;
+                                    $rowClass = $hasTodayAppointment ? 'today-patient' : '';
+                                    
+                                    echo '<tr class="' . $rowClass . '" data-today="' . ($hasTodayAppointment ? '1' : '0') . '">';
                                     echo '<td>' . htmlspecialchars($patient['nom']) . '</td>';
                                     echo '<td>' . htmlspecialchars($patient['email']) . '</td>';
-                                    echo '<td>' . date('H:i', strtotime($patient['date_rendezvous'])) . '</td>';
+                                    echo '<td>' . htmlspecialchars($patient['date_naissance']) . '</td>';
+                                    echo '<td>' . ($patient['dernier_rdv'] ? date('d/m/Y H:i', strtotime($patient['dernier_rdv'])) : 'Aucun') . '</td>';
+                                    echo '<td>' . ($patient['prochain_rdv'] ? date('d/m/Y H:i', strtotime($patient['prochain_rdv'])) : 'Aucun') . '</td>';
                                     echo '<td>
                                             <button onclick="openConsultation(' . $patient['id'] . ', \'' . htmlspecialchars($patient['nom']) . '\')" class="consultation-btn">
                                                 Consultation
@@ -166,7 +190,7 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                                 }
                             }
                         } catch (PDOException $e) {
-                            echo '<tr><td colspan="4">Erreur : ' . htmlspecialchars($e->getMessage()) . '</td></tr>';
+                            echo '<tr><td colspan="6">Erreur : ' . htmlspecialchars($e->getMessage()) . '</td></tr>';
                         }
                         ?>
                     </tbody>
@@ -200,6 +224,74 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
             </div>
 
             <style>
+                .illness-list h2 {
+                    color: white;
+                }
+                .table-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                }
+                .filter-buttons {
+                    display: flex;
+                    gap: 10px;
+                }
+                .filter-btn {
+                    padding: 8px 16px;
+                    border: 2px solid white;
+                    background: transparent;
+                    color: white;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+                .filter-btn.active,
+                .filter-btn:hover {
+                    background-color: #0e2f44;
+                    border-color: #0e2f44;
+                    color: white;
+                }
+
+                #patientsTable {
+                    width: 100%;
+                    border-collapse: collapse;
+                    color: white;
+                }
+
+                #patientsTable thead th {
+                    color: white;
+                    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+                    padding: 12px 15px;
+                    text-align: left;
+                }
+                
+                #patientsTable tbody tr {
+                    background-color: rgba(255, 255, 255, 0.08) !important;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+                    transition: all 0.2s ease-out;
+                    position: relative;
+                }
+
+                #patientsTable tbody tr:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                    background-color: rgba(255, 255, 255, 0.08) !important;
+                }
+
+                #patientsTable td {
+                    padding: 12px 15px;
+                }
+                
+                #patientsTable tbody tr:last-child {
+                    border-bottom: none;
+                }
+                
+                .today-patient {
+                    background-color: rgba(46, 204, 113, 0.15) !important;
+                    border-left: 4px solid #2ecc71;
+                }
+
                 .modal {
                     display: none;
                     position: fixed;
@@ -255,6 +347,31 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                     document.getElementById("patientName").textContent = patientName;
                     document.getElementById("patient_id").value = patientId;
                     modal.style.display = "block";
+                }
+
+                function showAllPatients() {
+                    // Show all rows
+                    const rows = document.querySelectorAll('#patientsTableBody tr');
+                    rows.forEach(row => {
+                        row.style.display = '';
+                    });
+                    
+                    // Update button states
+                    document.getElementById('allPatientsBtn').classList.add('active');
+                    document.getElementById('todayPatientsBtn').classList.remove('active');
+                }
+
+                function showTodayPatients() {
+                    // Show only today's patients
+                    const rows = document.querySelectorAll('#patientsTableBody tr');
+                    rows.forEach(row => {
+                        const hasTodayAppointment = row.getAttribute('data-today') === '1';
+                        row.style.display = hasTodayAppointment ? '' : 'none';
+                    });
+                    
+                    // Update button states
+                    document.getElementById('todayPatientsBtn').classList.add('active');
+                    document.getElementById('allPatientsBtn').classList.remove('active');
                 }
 
                 span.onclick = function() {

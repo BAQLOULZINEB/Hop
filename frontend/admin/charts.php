@@ -1,6 +1,15 @@
 <?php
 require_once '../../backend/auth/session_handler.php';
 checkRole('admin');
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (isset($_POST['logout'])) {
+    session_unset();
+    session_destroy();
+    header('Location: ../../frontend/Authentification.php');
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

@@ -12,6 +12,8 @@ unset($_SESSION['success']);
 // Fetch distinct specialities already existing in the medecin table
 $existingSpecialities = [];
 try {
+    // Set charset for this specific query
+    $pdo->exec("SET NAMES utf8");
     $stmt = $pdo->query("SELECT DISTINCT specialite FROM medecin WHERE specialite IS NOT NULL AND specialite != '' ORDER BY specialite");
     $existingSpecialities = $stmt->fetchAll(PDO::FETCH_COLUMN);
 } catch (PDOException $e) {
@@ -89,6 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     if ($emailValidation['valid']) {
                         $_SESSION['user_id'] = $user['id'];
                         $_SESSION['role'] = $emailValidation['role'];
+                        $_SESSION['user'] = $user;
                         
                         // Redirect based on email domain
                         switch($emailValidation['role']) {
@@ -667,8 +670,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <select name="specialite">
                             <option value="">Select Speciality</option>
                             <?php foreach ($existingSpecialities as $specialityName): ?>
-                                <option value="<?php echo htmlspecialchars($specialityName); ?>">
-                                    <?php echo htmlspecialchars($specialityName); ?>
+                                <option value="<?php echo htmlspecialchars($specialityName, ENT_QUOTES, 'UTF-8'); ?>">
+                                    <?php echo htmlspecialchars($specialityName, ENT_QUOTES, 'UTF-8'); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

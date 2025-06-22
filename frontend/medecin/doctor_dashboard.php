@@ -2,7 +2,108 @@
 require_once '../../backend/auth/session_handler.php';
 checkRole('medecin');
 
-$doctor_name = htmlspecialchars($_SESSION['user']['nom']);
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Get user data - handle both session formats
+$currentUser = null;
+$doctor_name = '';
+$medecin_id = null;
+
+if (isset($_SESSION['user'])) {
+    // If user data is stored in session
+    $currentUser = $_SESSION['user'];
+    $doctor_name = htmlspecialchars($currentUser['nom']);
+    $medecin_id = $currentUser['id'];
+} elseif (isset($_SESSION['user_id'])) {
+    // If only user_id is stored, fetch user data from database
+    try {
+        $db = new PDO("mysql:host=localhost;dbname=medical_system", "root", "");
+        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $db->exec("SET NAMES utf8mb4");
+        
+        $stmt = $db->prepare("SELECT * FROM utilisateur WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $currentUser = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($currentUser) {
+            $doctor_name = htmlspecialchars($currentUser['nom']);
+            $medecin_id = $currentUser['id'];
+        }
+    } catch(PDOException $e) {
+        // Handle database error
+        $error = 'Database error: ' . $e->getMessage();
+    }
+}
+
+// If we still don't have user data, redirect to login
+if (!$currentUser || !$medecin_id) {
+    header('Location: ../../frontend/Authentification.php');
+    exit();
+}
+
+if (isset($_POST['logout'])) {
+    session_unset();
+    session_destroy();
+    header('Location: ../../frontend/Authentification.php');
+    exit();
+}
+
+// Fetch statistics and appointments data
+$stats = [
+    'today_patients' => 0,
+    'total_appointments' => 0
+];
+$todayAppointments = [];
+
+try {
+    $db = new PDO("mysql:host=localhost;dbname=medical_system", "root", "");
+    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $db->exec("SET NAMES utf8mb4");
+    
+    // Get today's patients count (unique patients with appointments today)
+    $query = "SELECT COUNT(DISTINCT r.patient_id) as today_patients
+              FROM rendez_vous r
+              WHERE r.medecin_id = :medecin_id 
+              AND DATE(r.date_rendezvous) = CURDATE()
+              AND r.statut = 'confirmé'";
+    $stmt = $db->prepare($query);
+    $stmt->execute([':medecin_id' => $medecin_id]);
+    $stats['today_patients'] = (int)$stmt->fetch(PDO::FETCH_ASSOC)['today_patients'];
+    
+    // Get total appointments count for this doctor
+    $query = "SELECT COUNT(*) as total_appointments
+              FROM rendez_vous r
+              WHERE r.medecin_id = :medecin_id 
+              AND r.statut = 'confirmé'";
+    $stmt = $db->prepare($query);
+    $stmt->execute([':medecin_id' => $medecin_id]);
+    $stats['total_appointments'] = (int)$stmt->fetch(PDO::FETCH_ASSOC)['total_appointments'];
+    
+    // Get today's appointments for the table
+    $query = "SELECT 
+                u.id as patient_id,
+                u.nom as patient_name,
+                u.email as patient_email,
+                r.date_rendezvous,
+                r.statut,
+                'Consultation' as appointment_type
+              FROM rendez_vous r
+              JOIN patient p ON r.patient_id = p.id
+              JOIN utilisateur u ON p.id = u.id
+              WHERE r.medecin_id = :medecin_id 
+              AND DATE(r.date_rendezvous) = CURDATE()
+              AND r.statut = 'confirmé'
+              ORDER BY r.date_rendezvous ASC";
+    $stmt = $db->prepare($query);
+    $stmt->execute([':medecin_id' => $medecin_id]);
+    $todayAppointments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+} catch(PDOException $e) {
+    // Handle database error
+    $error = 'Database error: ' . $e->getMessage();
+}
 ?>
 <!DOCTYPE html>
 <html dir="ltr" lang="fr">
@@ -19,6 +120,36 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>Doctor Dashboard</title>
+    <style>
+        .profile-dropdown {
+            display: none !important;
+        }
+        .stat .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            margin-top: 10px;
+        }
+        .patients { background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2)); }
+        .appointments { background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2)); }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+    </style>
 </head>
 <body style="background-image: url('../images/background_page.jpg'); background-color: rgba(12, 36, 54, 0.55); background-position: center; background-size: cover; background-repeat: no-repeat;">   
     <div class="page">
@@ -48,12 +179,6 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                     </a>
                 </li>
                 <li>
-                    <a href="prescriptions.php">
-                        <i class="fa-solid fa-prescription fa-fw"></i>
-                        <span>Prescriptions</span>
-                    </a>
-                </li>
-                <li>
                     <a href="medical_records.php">
                         <i class="fa-solid fa-file-medical fa-fw"></i>
                         <span>Medical Records</span>
@@ -63,12 +188,6 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                     <a href="schedule.php">
                         <i class="fa-solid fa-clock fa-fw"></i>
                         <span>Schedule</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="messages.php">
-                        <i class="fa-solid fa-message fa-fw"></i>
-                        <span>Messages</span>
                     </a>
                 </li>
             </ul>
@@ -87,12 +206,6 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                         <h1>Welcome Dr. <span id="doctor-name"><?php echo $doctor_name; ?></span></h1>
                         <span class="subtitle">Doctor Dashboard</span>
                     </div>
-                </div>
-                <div class="header-center">
-                    <form action="" method="post" class="search-bar">
-                        <input type="search" name="search_query" placeholder="Search patients or appointments">
-                        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
-                    </form>
                 </div>
                 <div class="header-right">
                     <div class="profile-menu">
@@ -114,6 +227,18 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                 </div>
             </div>
             
+            <!-- User Profile Info -->
+            <?php if ($currentUser): ?>
+            <div class="profile-info" style="display: flex; align-items: center; gap: 24px; background: rgba(255,255,255,0.08); border-radius: 16px; padding: 24px 32px; margin: 24px 0; box-shadow: 0 2px 12px rgba(0,0,0,0.07); max-width: 500px;">
+                <img src="../images/avatar.jpg" alt="Avatar" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #fff;">
+                <div>
+                    <div style="font-size: 1.3em; font-weight: bold; color: #fff;">Name: <?php echo htmlspecialchars($currentUser['nom'] ?? ''); ?></div>
+                    <div style="color: #fff; margin-top: 4px;">Email: <?php echo htmlspecialchars($currentUser['email'] ?? ''); ?></div>
+                    <div style="color: #fff; margin-top: 4px;">Role: <?php echo htmlspecialchars($currentUser['role'] ?? ''); ?></div>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <!-- Dashboard Statistics -->
             <div class="details">
                 <div class="main-details">
@@ -121,28 +246,14 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                         <i class="fa-solid fa-bed-pulse"></i>
                         <div class="stat">
                             <p>Today's Patients</p>
-                            <p class="number">0</p>
+                            <p class="number"><?php echo $stats['today_patients']; ?></p>
                         </div>
                     </div>
                     <div class="appointments m-d">
                         <i class="fa-solid fa-calendar-check fa-fw"></i>
                         <div class="stat">
                             <p>Appointments</p>
-                            <p class="number">0</p>
-                        </div>
-                    </div>
-                    <div class="prescriptions m-d">
-                        <i class="fa-solid fa-prescription fa-fw"></i>
-                        <div class="stat">
-                            <p>Prescriptions</p>
-                            <p class="number">0</p>
-                        </div>
-                    </div>
-                    <div class="messages m-d">
-                        <i class="fa-solid fa-message fa-fw"></i>
-                        <div class="stat">
-                            <p>Messages</p>
-                            <p class="number">0</p>
+                            <p class="number"><?php echo $stats['total_appointments']; ?></p>
                         </div>
                     </div>
                 </div>
@@ -174,12 +285,97 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                             <td>Contact</td>
                             <td colspan="2">Actions</td>
                         </tr>
-                        <!-- PHP will populate this section -->
+                        <?php if (!empty($todayAppointments)): ?>
+                            <?php foreach ($todayAppointments as $appointment): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($appointment['patient_name']); ?></td>
+                                    <td><?php echo date('H:i', strtotime($appointment['date_rendezvous'])); ?></td>
+                                    <td><?php echo htmlspecialchars($appointment['appointment_type']); ?></td>
+                                    <td><?php echo htmlspecialchars($appointment['statut']); ?></td>
+                                    <td><?php echo htmlspecialchars($appointment['patient_email']); ?></td>
+                                    <td colspan="2">
+                                        <a href="medical_records.php?patient_id=<?php echo $appointment['patient_id'] ?? ''; ?>" class="btn btn-primary">View Records</a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="7" style="text-align: center;">No appointments scheduled for today</td>
+                            </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
     <script src="../index.js"></script>
+    <script>
+        // Function to refresh statistics
+        function refreshStats() {
+            fetch('api/get_doctor_stats.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update statistics
+                        document.querySelector('.patients .number').textContent = data.stats.today_patients;
+                        document.querySelector('.appointments .number').textContent = data.stats.total_appointments;
+                        
+                        // Update appointments table
+                        updateAppointmentsTable(data.today_appointments);
+                    } else {
+                        console.error('Error fetching stats:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error refreshing stats:', error);
+                });
+        }
+        
+        // Function to update appointments table
+        function updateAppointmentsTable(appointments) {
+            const tbody = document.querySelector('.illness-list tbody');
+            const headerRow = tbody.querySelector('tr:first-child');
+            
+            // Clear existing appointment rows (keep header)
+            const existingRows = tbody.querySelectorAll('tr:not(:first-child)');
+            existingRows.forEach(row => row.remove());
+            
+            if (appointments.length === 0) {
+                const noAppointmentsRow = document.createElement('tr');
+                noAppointmentsRow.innerHTML = '<td colspan="7" style="text-align: center;">No appointments scheduled for today</td>';
+                tbody.appendChild(noAppointmentsRow);
+            } else {
+                appointments.forEach(appointment => {
+                    const row = document.createElement('tr');
+                    const time = new Date(appointment.date_rendezvous).toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        hour12: false 
+                    });
+                    
+                    row.innerHTML = `
+                        <td>${appointment.patient_name}</td>
+                        <td>${time}</td>
+                        <td>${appointment.appointment_type}</td>
+                        <td>${appointment.statut}</td>
+                        <td>${appointment.patient_email}</td>
+                        <td colspan="2">
+                            <a href="medical_records.php?patient_id=${appointment.patient_id}" class="btn btn-primary">View Records</a>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        }
+        
+        // Refresh stats every 30 seconds
+        setInterval(refreshStats, 30000);
+        
+        // Initial refresh after page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Refresh stats after 5 seconds to ensure page is fully loaded
+            setTimeout(refreshStats, 5000);
+        });
+    </script>
 </body>
 </html>

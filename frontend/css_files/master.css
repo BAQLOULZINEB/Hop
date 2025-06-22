@@ -13,7 +13,6 @@ a {
 .page {
   height: 100vh;
   display: flex;
-  overflow: hidden;
   margin: 0;
   padding: 0;
   background-image: url('../images/background_page.jpg');
@@ -299,6 +298,10 @@ body {
   background-color: rgba(12, 36, 54, 0.55);
   border-radius: 32px;
   border: 1px solid rgba(255, 255, 255, 0.125);
+  flex-grow: 1; /* Make content area take up remaining space */
+  padding: 20px;
+  overflow-y: auto; /* Allow vertical scrolling ONLY for the content area */
+  height: 100vh; /* Ensure it uses the full viewport height */
 }
 
 /* Remove any .content::before overlay */
@@ -600,42 +603,45 @@ body {
   padding: 15px;
 }
 .content .illness-list table tbody tr td {
-  padding: 10px 10px;
-  transition: 0.3s;
+  padding: 15px;
+  border-bottom: 1px solid #ddd;
 }
-.content .illness-list table tbody tr:hover td {
-  background-color: #ddd;
-}
+/* .content .illness-list table tbody tr:hover td {
+  background-color: white;
+  color: #0e2f44;
+} */
 .content .illness-list table tbody tr:hover .dot button {
-  background-color: #eee;
+  opacity: 1;
 }
 .content .illness-list table thead tr #logo,
-.content .illness-list table thead tr #search {
-  text-align: center;
+.content .illness-list table thead tr td {
+  background-color: transparent !important;
+  font-weight: bold;
 }
 .content .illness-list table thead tr td input[type="search"] {
-  width: 350px;
-  height: 35px;
+  padding: 10px;
+  width: 300px;
+  border-radius: 20px;
   border: none;
-  margin-left: 10px;
-  padding-right: 30px;
-  border-radius: 10px;
+  background-color: #ddd;
+  outline: none;
+  transition: 0.3s;
 }
 .content .illness-list table thead tr td input[type="search"]:focus {
-  outline: none;
+  width: 350px;
 }
 .content .illness-list table thead tr td:nth-child(2) {
-  text-align: center;
+  text-align: end;
 }
 .content .illness-list table thead tr td img {
   width: 100px;
-  margin-left: -100px;
 }
-.content .illness-list table tbody tr:first-child {
-  background-color: #ddd;
-}
+/* .content .illness-list table tbody tr:first-child {
+  background-color: white;
+  color: #0e2f44;
+} */
 .content .illness-list table tbody .bor td {
-  border-top: 1px solid #333;
+  border: none;
 }
 .content .illness-list table tbody tr .dot button {
   width: 50px;

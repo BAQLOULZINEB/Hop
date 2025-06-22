@@ -1,6 +1,15 @@
 <?php
 require_once '../../backend/auth/session_handler.php';
 checkRole('medecin');
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (isset($_POST['logout'])) {
+    session_unset();
+    session_destroy();
+    header('Location: ../../frontend/Authentification.php');
+    exit();
+}
 
 $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
 $medecin_id = $_SESSION['user']['id'];
@@ -60,6 +69,7 @@ $dummy_event = [
     'end' => '09:30',
     'patient' => 'John Doe'
 ];
+
 ?>
 <!DOCTYPE html>
 <html dir="ltr" lang="fr">
@@ -414,12 +424,6 @@ $dummy_event = [
                     </a>
                 </li>
                 <li>
-                    <a href="prescriptions.php">
-                        <i class="fa-solid fa-prescription fa-fw"></i>
-                        <span>Prescriptions</span>
-                    </a>
-                </li>
-                <li>
                     <a href="medical_records.php">
                         <i class="fa-solid fa-file-medical fa-fw"></i>
                         <span>Medical Records</span>
@@ -429,12 +433,6 @@ $dummy_event = [
                     <a href="schedule.php">
                         <i class="fa-solid fa-clock fa-fw"></i>
                         <span>Schedule</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="messages.php">
-                        <i class="fa-solid fa-message fa-fw"></i>
-                        <span>Messages</span>
                     </a>
                 </li>
             </ul>
@@ -453,12 +451,6 @@ $dummy_event = [
                         <h1>Welcome Dr. <span id="doctor-name"><?php echo $doctor_name; ?></span></h1>
                         <span class="subtitle">Doctor Dashboard</span>
                     </div>
-                </div>
-                <div class="header-center">
-                    <form action="" method="post" class="search-bar">
-                        <input type="search" name="search_query" placeholder="Search patients or appointments">
-                        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
-                    </form>
                 </div>
                 <div class="header-right">
                     <div class="profile-menu">

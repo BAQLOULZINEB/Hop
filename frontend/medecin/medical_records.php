@@ -3,6 +3,16 @@ require_once '../../backend/auth/session_handler.php';
 checkRole('medecin');
 
 $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (isset($_POST['logout'])) {
+    session_unset();
+    session_destroy();
+    header('Location: ../../frontend/Authentification.php');
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html dir="ltr" lang="fr">
@@ -19,6 +29,58 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>Doctor Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-card {
+            background: #f8fafc;
+            border-radius: 10px;
+            box-shadow: 0 1px 6px #0001;
+            padding: 24px 18px 18px 18px;
+            margin-bottom: 32px;
+        }
+        .chart-title {
+            font-size: 1.2em;
+            color: #34495e;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        canvas {
+            width: 100% !important;
+            height: 350px !important;
+        }
+        .current-temp-box {
+            margin-bottom: 24px;
+            font-size: 1.5em;
+            color: #e67e22;
+            font-weight: bold;
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .no-data-message {
+             color: #c00;
+             font-weight: bold;
+             margin-top: 18px;
+             padding: 15px;
+             background-color: #fff3f3;
+             border-radius: 8px;
+             text-align: center;
+        }
+        .vitals-title {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .vitals-title:hover {
+            background-color: #e9e9e9;
+        }
+    </style>
 </head>
 <body style="background-image: url('../images/background_page.jpg'); background-color: rgba(12, 36, 54, 0.55); background-position: center; background-size: cover; background-repeat: no-repeat;">   
     <div class="page">
@@ -48,12 +110,6 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                     </a>
                 </li>
                 <li>
-                    <a href="prescriptions.php">
-                        <i class="fa-solid fa-prescription fa-fw"></i>
-                        <span>Prescriptions</span>
-                    </a>
-                </li>
-                <li>
                     <a href="medical_records.php">
                         <i class="fa-solid fa-file-medical fa-fw"></i>
                         <span>Medical Records</span>
@@ -63,12 +119,6 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                     <a href="schedule.php">
                         <i class="fa-solid fa-clock fa-fw"></i>
                         <span>Schedule</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="messages.php">
-                        <i class="fa-solid fa-message fa-fw"></i>
-                        <span>Messages</span>
                     </a>
                 </li>
             </ul>
@@ -87,12 +137,6 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                         <h1>Welcome Dr. <span id="doctor-name"><?php echo $doctor_name; ?></span></h1>
                         <span class="subtitle">Doctor Dashboard</span>
                     </div>
-                </div>
-                <div class="header-center">
-                    <form action="" method="post" class="search-bar">
-                        <input type="search" name="search_query" placeholder="Search patients or appointments">
-                        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
-                    </form>
                 </div>
                 <div class="header-right">
                     <div class="profile-menu">
@@ -160,7 +204,7 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                             echo '<div id="records-' . $patient['patient_id'] . '" class="drawer-content">';
                             
                             // Get consultations with remarks
-                            $sql = "SELECT date_consultation, remarques 
+                            $sql = "SELECT id, date_consultation, remarques 
                                    FROM consultation 
                                    WHERE patient_id = :patient_id AND medecin_id = :medecin_id 
                                    ORDER BY date_consultation DESC";
@@ -181,10 +225,17 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                                     echo '<div class="record-item">';
                                     echo '<div class="consultation-header">';
                                     echo '<span class="date">' . date('d/m/Y H:i', strtotime($consult['date_consultation'])) . '</span>';
+                                    echo '<button class="edit-btn" data-id="' . $consult['id'] . '" data-remarques="' . htmlspecialchars($consult['remarques'] ?? '', ENT_QUOTES) . '" data-date="' . date('d/m/Y H:i', strtotime($consult['date_consultation'])) . '">';
+                                    echo '<i class="fa-solid fa-edit"></i> Modifier';
+                                    echo '</button>';
                                     echo '</div>';
                                     if (!empty($consult['remarques'])) {
                                         echo '<div class="consultation-details">';
                                         echo '<p class="remarks">' . nl2br(htmlspecialchars($consult['remarques'])) . '</p>';
+                                        echo '</div>';
+                                    } else {
+                                        echo '<div class="consultation-details">';
+                                        echo '<p class="remarks no-remarks">Aucune remarque enregistrée</p>';
                                         echo '</div>';
                                     }
                                     echo '</div>';
@@ -203,25 +254,17 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
 
                             // Display measurements
                             echo '<div class="section">';
-                            echo '<h4>Mesures Vitales</h4>';
-                            if (empty($measurements)) {
-                                echo '<div class="record-item">Aucune mesure enregistrée</div>';
-                            } else {
-                                foreach ($measurements as $measure) {
-                                    echo '<div class="record-item">';
-                                    echo '<span class="date">' . date('d/m/Y H:i', strtotime($measure['date_mesure'])) . '</span>';
-                                    echo '<div class="measure-details">';
-                                    echo '<span>Température: ' . htmlspecialchars($measure['temperature']) . '°C</span>';
-                                    echo '<span>Pulsation: ' . htmlspecialchars($measure['pulsation']) . ' bpm</span>';
-                                    echo '</div>';
-                                    echo '</div>';
-                                }
-                            }
+                            echo '<h4 class="vitals-title">';
+                            echo '<a href="vital_signs.php?patient_id=' . $patient['patient_id'] . '" style="text-decoration: none; color: inherit; display: flex; justify-content: space-between; align-items: center; width: 100%;">';
+                            echo '<span>Mesures Vitales</span>';
+                            echo '<i class="fa-solid fa-external-link-alt"></i>';
+                            echo '</a>';
+                            echo '</h4>';
                             echo '</div>';
 
                             echo '</div>'; // End medical-history
                             echo '</div>'; // End records-content
-                            echo '</div>'; // End medical-record
+                            echo '</div>'; // End drawer
 
                             // Add styles for consultation remarks
                             echo '<style>
@@ -230,6 +273,8 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                                     justify-content: space-between;
                                     align-items: center;
                                     margin-bottom: 8px;
+                                    flex-wrap: wrap;
+                                    gap: 10px;
                                 }
                                 .consultation-details {
                                     background-color: #f8f9fa;
@@ -267,6 +312,159 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                                     padding-bottom: 8px;
                                     border-bottom: 2px solid #0e2f44;
                                 }
+
+                                /* Edit button styles */
+                                .edit-btn {
+                                    background-color: #0e2f44;
+                                    color: white;
+                                    border: none;
+                                    padding: 5px 10px;
+                                    border-radius: 4px;
+                                    cursor: pointer;
+                                    font-size: 0.9em;
+                                    transition: background-color 0.3s;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 5px;
+                                }
+
+                                .edit-btn:hover {
+                                    background-color: #1a5276;
+                                }
+
+                                .edit-btn i {
+                                    font-size: 0.8em;
+                                }
+
+                                /* Modal styles */
+                                .modal {
+                                    display: none;
+                                    position: fixed;
+                                    top: 0;
+                                    left: 0;
+                                    width: 100%;
+                                    height: 100%;
+                                    background-color: rgba(0,0,0,0.5);
+                                    z-index: 1000;
+                                }
+
+                                .modal-content {
+                                    background-color: #fff;
+                                    margin: 5% auto;
+                                    padding: 25px;
+                                    border: 1px solid #888;
+                                    width: 90%;
+                                    max-width: 600px;
+                                    border-radius: 8px;
+                                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                                }
+
+                                .close {
+                                    color: #aaa;
+                                    float: right;
+                                    font-size: 28px;
+                                    font-weight: bold;
+                                    cursor: pointer;
+                                    line-height: 1;
+                                }
+
+                                .close:hover {
+                                    color: #000;
+                                }
+
+                                .consultation-date {
+                                    color: #666;
+                                    font-style: italic;
+                                    margin-bottom: 20px;
+                                    padding: 10px;
+                                    background-color: #f8f9fa;
+                                    border-radius: 4px;
+                                }
+
+                                .form-group {
+                                    margin-bottom: 20px;
+                                }
+
+                                .form-group label {
+                                    display: block;
+                                    margin-bottom: 8px;
+                                    font-weight: bold;
+                                    color: #333;
+                                }
+
+                                .form-group textarea {
+                                    width: 100%;
+                                    min-height: 150px;
+                                    padding: 12px;
+                                    border: 1px solid #ddd;
+                                    border-radius: 4px;
+                                    resize: vertical;
+                                    font-family: inherit;
+                                    line-height: 1.5;
+                                }
+
+                                .form-group textarea:focus {
+                                    outline: none;
+                                    border-color: #0e2f44;
+                                    box-shadow: 0 0 0 2px rgba(14, 47, 68, 0.2);
+                                }
+
+                                .form-group input[type="datetime-local"] {
+                                    width: 100%;
+                                    padding: 12px;
+                                    border: 1px solid #ddd;
+                                    border-radius: 4px;
+                                    font-family: inherit;
+                                    font-size: 14px;
+                                }
+
+                                .form-group input[type="datetime-local"]:focus {
+                                    outline: none;
+                                    border-color: #0e2f44;
+                                    box-shadow: 0 0 0 2px rgba(14, 47, 68, 0.2);
+                                }
+
+                                .form-actions {
+                                    display: flex;
+                                    gap: 10px;
+                                    justify-content: flex-end;
+                                    margin-top: 20px;
+                                }
+
+                                .cancel-btn {
+                                    background-color: #6c757d;
+                                    color: white;
+                                    padding: 10px 20px;
+                                    border: none;
+                                    border-radius: 4px;
+                                    cursor: pointer;
+                                    font-size: 14px;
+                                    transition: background-color 0.3s;
+                                }
+
+                                .cancel-btn:hover {
+                                    background-color: #5a6268;
+                                }
+
+                                .submit-btn {
+                                    background-color: #0e2f44;
+                                    color: white;
+                                    padding: 10px 20px;
+                                    border: none;
+                                    border-radius: 4px;
+                                    cursor: pointer;
+                                    font-size: 14px;
+                                    transition: background-color 0.3s;
+                                }
+
+                                .submit-btn:hover {
+                                    background-color: #1a5276;
+                                }
+
+                                .no-remarks {
+                                    color: #999;
+                                    font-style: italic;
+                                }
                             </style>';
                         }
                     }
@@ -274,6 +472,30 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                     echo '<p>Erreur: ' . htmlspecialchars($e->getMessage()) . '</p>';
                 }
                 ?>
+                </div>
+            </div>
+
+            <!-- Edit Consultation Modal -->
+            <div id="editModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <span class="close" onclick="closeEditModal()">&times;</span>
+                    <h2>Modifier la Consultation</h2>
+                    <form id="editForm">
+                        <input type="hidden" id="editConsultationId" name="consultation_id">
+                        <div class="form-group">
+                            <label for="editConsultationDate">Date et Heure de Consultation:</label>
+                            <input type="datetime-local" id="editConsultationDate" name="date_consultation" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editRemarques">Remarques de Consultation:</label>
+                            <textarea id="editRemarques" name="remarques" 
+                                    placeholder="Notez ici vos observations médicales, le diagnostic et le traitement recommandé..."></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" onclick="closeEditModal()" class="cancel-btn">Annuler</button>
+                            <button type="submit" class="submit-btn">Enregistrer les modifications</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
@@ -495,6 +717,165 @@ $doctor_name = htmlspecialchars($_SESSION['user']['nom']);
                             drawer.style.display = 'none';
                         }, 300);
                     }
+                }
+
+                // Add event listeners for edit buttons
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Add click event listeners to all edit buttons
+                    document.addEventListener('click', function(e) {
+                        if (e.target.closest('.edit-btn')) {
+                            const button = e.target.closest('.edit-btn');
+                            const consultationId = button.getAttribute('data-id');
+                            const remarques = button.getAttribute('data-remarques');
+                            const consultationDate = button.getAttribute('data-date');
+                            
+                            console.log('Edit button clicked:', { consultationId, remarques, consultationDate });
+                            openEditModal(consultationId, remarques, consultationDate);
+                        }
+                    });
+                });
+
+                // Edit modal functions
+                function openEditModal(consultationId, remarques, consultationDate) {
+                    console.log('Opening edit modal:', { consultationId, remarques, consultationDate });
+                    console.log('Remarques type:', typeof remarques);
+                    console.log('Remarques value:', remarques);
+                    
+                    // Validate parameters
+                    if (!consultationId) {
+                        alert('Erreur: ID de consultation manquant');
+                        return;
+                    }
+                    
+                    // Format date for datetime-local input (YYYY-MM-DDTHH:MM)
+                    let formattedDate = '';
+                    if (consultationDate) {
+                        // Convert from DD/MM/YYYY HH:MM to YYYY-MM-DDTHH:MM
+                        const dateParts = consultationDate.split(' ')[0].split('/');
+                        const timeParts = consultationDate.split(' ')[1] || '00:00';
+                        if (dateParts.length === 3) {
+                            formattedDate = dateParts[2] + '-' + 
+                                           dateParts[1].padStart(2, '0') + '-' + 
+                                           dateParts[0].padStart(2, '0') + 'T' + 
+                                           timeParts;
+                        }
+                    }
+                    
+                    // Set form values
+                    document.getElementById('editConsultationId').value = consultationId;
+                    document.getElementById('editConsultationDate').value = formattedDate;
+                    
+                    // Handle remarques - ensure it's a string and not null/undefined
+                    const remarquesValue = (remarques && remarques !== 'null' && remarques !== 'undefined') ? remarques : '';
+                    document.getElementById('editRemarques').value = remarquesValue;
+                    
+                    console.log('Form values set:', {
+                        consultationId: document.getElementById('editConsultationId').value,
+                        date: document.getElementById('editConsultationDate').value,
+                        remarques: document.getElementById('editRemarques').value
+                    });
+                    
+                    // Show modal
+                    document.getElementById('editModal').style.display = 'block';
+                }
+
+                function closeEditModal() {
+                    document.getElementById('editModal').style.display = 'none';
+                    document.getElementById('editForm').reset();
+                }
+
+                // Handle form submission
+                document.getElementById('editForm').addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(this);
+                    const submitBtn = this.querySelector('.submit-btn');
+                    const originalText = submitBtn.textContent;
+                    
+                    // Log form data for debugging
+                    console.log('Submitting form data:', {
+                        consultation_id: formData.get('consultation_id'),
+                        date_consultation: formData.get('date_consultation'),
+                        remarques: formData.get('remarques')
+                    });
+                    
+                    // Disable button and show loading state
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Enregistrement...';
+                    
+                    try {
+                        const response = await fetch('api/update_consultation.php', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        console.log('Response status:', response.status);
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        const result = await response.json();
+                        console.log('Response result:', result);
+                        
+                        if (result.success) {
+                            alert('Consultation modifiée avec succès!');
+                            closeEditModal();
+                            // Reload the page to show updated data
+                            location.reload();
+                        } else {
+                            alert('Erreur: ' + (result.error || 'Erreur inconnue'));
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Erreur lors de la modification de la consultation: ' + error.message);
+                    } finally {
+                        // Re-enable button
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    }
+                });
+
+                // Close modal when clicking outside
+                window.addEventListener('click', function(event) {
+                    const modal = document.getElementById('editModal');
+                    if (event.target === modal) {
+                        closeEditModal();
+                    }
+                });
+
+                // Close modal with Escape key
+                document.addEventListener('keydown', function(event) {
+                    if (event.key === 'Escape') {
+                        closeEditModal();
+                    }
+                });
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    const profileMenu = document.querySelector('.profile-menu');
+                    if (profileMenu) {
+                        profileMenu.addEventListener('click', function() {
+                            const dropdown = this.querySelector('.profile-dropdown');
+                            if (dropdown) {
+                                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+                            }
+                        });
+                    }
+                });
+
+                // Function to toggle main records visibility
+                const recordsDiv = document.getElementById('records-' + patientId);
+                const drawer = recordsDiv.closest('.drawer');
+                const icon = drawer.querySelector('.drawer-icon');
+
+                if (recordsDiv.style.display === 'block') {
+                    recordsDiv.style.display = 'none';
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
+                } else {
+                    recordsDiv.style.display = 'block';
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-up');
                 }
             </script>
         </div>
