@@ -61,18 +61,19 @@ sort($allSpecialties); // Sort alphabetically
 
 // --- Form Submission Handling for Adding Doctor and Specialty ---
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_doctor'])) {
-    // Get doctor details
-    $doc_name = $_POST['doc_name'];
-    $doc_department = $_POST['doc_department']; // This is the specialty entered by the user
-    $doc_mail = $_POST['doc_mail'];
-    $doc_password = $_POST['doc_password'];
-    $doc_re_password = $_POST['doc_re_password'];
-
-    // Basic validation (you should add more robust validation)
-    if ($doc_password !== $doc_re_password) {
-        // Handle password mismatch error
+    // Email domain validation
+    if (!preg_match('/@med\\.com$/', $_POST['doc_mail'])) {
+        echo "<script>alert('Email must end with @med.com');</script>";
+    } else if ($_POST['doc_password'] !== $_POST['doc_re_password']) {
         echo "<script>alert('Passwords do not match!');</script>";
     } else {
+        // Get doctor details
+        $doc_name = $_POST['doc_name'];
+        $doc_department = $_POST['doc_department']; // This is the specialty entered by the user
+        $doc_mail = $_POST['doc_mail'];
+        $doc_password = $_POST['doc_password'];
+        $doc_re_password = $_POST['doc_re_password'];
+
         // Check if specialty exists
         $speciality_exists = in_array($doc_department, $existingSpecialities);
 
@@ -366,10 +367,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_doctor'])) {
                     <img src="../images/download__15_-removebg-preview.png" alt="">
                 </div>
                 <div class="forms">
-                    <form action="" method="post">
+                    <form action="" method="post" onsubmit="return validateDoctorForm();">
                         <div class="name">
                             <label for="doc_name">Nom du docteur</label>
-                            <input type="text" name="doc_name" id="doc_name" placeholder="Nom" required>
+                            <input type="text" name="doc_name" id="doc_name" placeholder="nom.prenom" title="Entrez le nom complet au format nom.prenom" required>
                         </div>
                         <div class="department">
                             <label for="doc_department">Spécialité</label>
@@ -390,7 +391,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_doctor'])) {
                         </div>
                         <div class="email">
                             <label for="doc_mail">Email</label>
-                            <input type="email" name="doc_mail" id="doc_mail" placeholder="mail address" required>
+                            <input type="email" name="doc_mail" id="doc_mail" placeholder="exemple@med.com" autocomplete="off" required>
                         </div>
                         <div class="password">
                             <label for="doc_password">Mot de passe</label>
@@ -398,7 +399,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_doctor'])) {
                         </div>
                         <div class="re_password">
                             <label for="doc_re_password">Confirmer le mot de passe</label>
-                            <input type="password" name="doc_re_password" id="doc_re_password" placeholder="Confirm password" required>
+                            <input type="password" name="doc_re_password" id="doc_re_password" placeholder="confirmer le mot de passe" required>
                         </div>
                         <div class="save-button">
                             <button type="submit" name="add_doctor">Enregistrer</button>
@@ -409,5 +410,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_doctor'])) {
         </div>
     </div>
     <script src="../index.js"></script>
+    <script>
+    function validateDoctorForm() {
+        const email = document.getElementById('doc_mail').value;
+        const password = document.getElementById('doc_password').value;
+        const confirmPassword = document.getElementById('doc_re_password').value;
+        const nom = document.getElementById('doc_name').value;
+        let error = '';
+        if (!email.endsWith('@med.com')) {
+            error = 'Email must end with @med.com';
+        } else if (password !== confirmPassword) {
+            error = 'Passwords do not match!';
+        } else if (!/^\w+\.\w+$/.test(nom)) {
+            error = 'Nom complet doit être au format nom.prenom';
+        }
+        if (error) {
+            alert(error);
+            return false;
+        }
+        return true;
+    }
+    // Autocomplete for email input
+    const docMailInput = document.getElementById('doc_mail');
+    docMailInput.addEventListener('keyup', function(e) {
+        if (e.key === '@' && !docMailInput.value.endsWith('@med.com')) {
+            if (!docMailInput.value.includes('@med.com')) {
+                docMailInput.value = docMailInput.value + 'med.com';
+            }
+        }
+    });
+    </script>
 </body>
 </html> 

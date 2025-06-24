@@ -319,12 +319,19 @@ if (isset($_POST['logout'])) {
                     cursor: pointer;
                 }
                 .consultation-btn {
-                    background-color: #0e2f44;
+                    background-color: #ff9800;
                     color: white;
-                    padding: 5px 10px;
+                    padding: 5px 14px;
                     border: none;
                     border-radius: 3px;
                     cursor: pointer;
+                    font-weight: bold;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                    transition: background 0.2s, box-shadow 0.2s;
+                }
+                .consultation-btn:hover {
+                    background-color: #fb8c00;
+                    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
                 }
                 .form-group {
                     margin-bottom: 15px;

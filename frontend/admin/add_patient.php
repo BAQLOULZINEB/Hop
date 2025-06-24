@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Commit transaction
         $db->commit();
         
-        $success = "Patient added successfully!";
+        $success = "Patient added successfully! Patient ID: " . $user_id;
         
     } catch(PDOException $e) {
         // Rollback transaction on error

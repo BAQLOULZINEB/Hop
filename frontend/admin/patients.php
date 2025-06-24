@@ -211,6 +211,20 @@ try {
         .search-bar button:hover {
             background: #1a5276;
         }
+        .stop-edit-btn {
+            background: #f39c12;
+            color: #fff;
+            padding: 6px 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.3s;
+            margin-left: 5px;
+        }
+        .stop-edit-btn:hover {
+            background: #e67e22;
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -324,6 +338,9 @@ try {
                         <button class="edit-btn" onclick="startEditing($(this).closest('tr'))">
                             <i class="fa-solid fa-pen-to-square"></i> Edit
                         </button>
+                        <button class="stop-edit-btn" onclick="stopEdit($(this).closest('tr'))">
+                            <i class="fa-solid fa-check-double"></i> Terminer
+                        </button>
                         <form method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this patient?');">
                             <input type="hidden" name="patient_id" value="${patientId}">
                             <button type="submit" name="delete_patient" class="delete-btn">
@@ -354,6 +371,11 @@ try {
 
             window.saveChanges = saveChanges;
             window.cancelEditing = cancelEditing;
+            window.stopEdit = function(row) {
+                if ($(row).hasClass('editing')) {
+                    saveChanges(row);
+                }
+            };
         });
     </script>
 </head>
@@ -479,6 +501,7 @@ try {
                 <table class="patients-table">
                     <thead>
                         <tr>
+                            <td>ID</td>
                             <td>Nom</td>
                             <td>Email</td>
                             <td>Date de naissance</td>
@@ -489,12 +512,16 @@ try {
                         <?php if (isset($patients) && !empty($patients)): ?>
                             <?php foreach ($patients as $patient): ?>
                                 <tr data-id="<?php echo $patient['user_id']; ?>">
+                                    <td><?php echo $patient['user_id']; ?></td>
                                     <td class="editable" data-field="nom"><?php echo htmlspecialchars($patient['nom']); ?></td>
                                     <td class="editable" data-field="email"><?php echo htmlspecialchars($patient['email']); ?></td>
                                     <td class="editable" data-field="date_naissance"><?php echo htmlspecialchars($patient['date_naissance']); ?></td>
                                     <td colspan="2" class="action-buttons">
                                         <button class="edit-btn" onclick="startEditing($(this).closest('tr'))">
                                             <i class="fa-solid fa-pen-to-square"></i> Edit
+                                        </button>
+                                        <button class="stop-edit-btn" onclick="stopEdit($(this).closest('tr'))">
+                                            <i class="fa-solid fa-check-double"></i> Terminer
                                         </button>
                                         <form method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this patient?');">
                                             <input type="hidden" name="patient_id" value="<?php echo $patient['user_id']; ?>">

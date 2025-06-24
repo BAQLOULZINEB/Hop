@@ -149,6 +149,106 @@ try {
         .btn-primary:hover {
             background: #2980b9;
         }
+        .illness-list table {
+            color: #fff;
+        }
+        .illness-list table thead td, .illness-list table thead th {
+            color: #ff9800;
+            font-weight: bold;
+            background: rgba(14,47,68,0.7);
+        }
+        .illness-list table tbody td, .illness-list table tbody th {
+            color: #fff;
+        }
+        .illness-list table a.btn-primary {
+            background: #ff9800;
+            color: #fff;
+            border: none;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .illness-list table a.btn-primary:hover {
+            background: #fb8c00;
+        }
+        .page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: row;
+        }
+        .dashboard {
+            flex-shrink: 0;
+        }
+        .content {
+            flex: 1;
+            padding: 32px 24px 32px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+        .profile-and-stats {
+            display: flex;
+            flex-direction: row;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+        .profile-info {
+            flex: 1 1 320px;
+            min-width: 280px;
+            max-width: 400px;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            background: rgba(255,255,255,0.08);
+            padding: 24px 32px;
+            margin-bottom: 0;
+        }
+        .details {
+            flex: 2 1 0;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            background: rgba(255,255,255,0.08);
+            padding: 24px 0 24px 0;
+            margin-bottom: 0;
+            display: flex;
+            flex-direction: row;
+            gap: 0;
+            justify-content: stretch;
+            align-items: stretch;
+            width: 100%;
+        }
+        .main-details {
+            display: flex;
+            flex-direction: row;
+            gap: 24px;
+            width: 100%;
+        }
+        .patients.m-d, .appointments.m-d {
+            flex: 1 1 0;
+            min-width: 0;
+            margin: 0;
+            padding: 0 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        @media (max-width: 1100px) {
+            .profile-and-stats {
+                flex-direction: column;
+                gap: 20px;
+            }
+            .profile-info, .details {
+                max-width: 100%;
+                min-width: 0;
+                padding: 16px 8px;
+            }
+            .main-details, .details {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
+        body {
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body style="background-image: url('../images/background_page.jpg'); background-color: rgba(12, 36, 54, 0.55); background-position: center; background-size: cover; background-repeat: no-repeat;">   
@@ -228,32 +328,32 @@ try {
             </div>
             
             <!-- User Profile Info -->
-            <?php if ($currentUser): ?>
-            <div class="profile-info" style="display: flex; align-items: center; gap: 24px; background: rgba(255,255,255,0.08); border-radius: 16px; padding: 24px 32px; margin: 24px 0; box-shadow: 0 2px 12px rgba(0,0,0,0.07); max-width: 500px;">
-                <img src="../images/avatar.jpg" alt="Avatar" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #fff;">
-                <div>
-                    <div style="font-size: 1.3em; font-weight: bold; color: #fff;">Name: <?php echo htmlspecialchars($currentUser['nom'] ?? ''); ?></div>
-                    <div style="color: #fff; margin-top: 4px;">Email: <?php echo htmlspecialchars($currentUser['email'] ?? ''); ?></div>
-                    <div style="color: #fff; margin-top: 4px;">Role: <?php echo htmlspecialchars($currentUser['role'] ?? ''); ?></div>
-                </div>
-            </div>
-            <?php endif; ?>
-
-            <!-- Dashboard Statistics -->
-            <div class="details">
-                <div class="main-details">
-                    <div class="patients m-d">
-                        <i class="fa-solid fa-bed-pulse"></i>
-                        <div class="stat">
-                            <p>Today's Patients</p>
-                            <p class="number"><?php echo $stats['today_patients']; ?></p>
-                        </div>
+            <div class="profile-and-stats">
+                <?php if ($currentUser): ?>
+                <div class="profile-info" style="display: flex; align-items: center; gap: 24px;">
+                    <img src="../images/avatar.jpg" alt="Avatar" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #fff;">
+                    <div>
+                        <div style="font-size: 1.3em; font-weight: bold; color: #fff;">Name: <?php echo htmlspecialchars($currentUser['nom'] ?? ''); ?></div>
+                        <div style="color: #fff; margin-top: 4px;">Email: <?php echo htmlspecialchars($currentUser['email'] ?? ''); ?></div>
+                        <div style="color: #fff; margin-top: 4px;">Role: <?php echo htmlspecialchars($currentUser['role'] ?? ''); ?></div>
                     </div>
-                    <div class="appointments m-d">
-                        <i class="fa-solid fa-calendar-check fa-fw"></i>
-                        <div class="stat">
-                            <p>Appointments</p>
-                            <p class="number"><?php echo $stats['total_appointments']; ?></p>
+                </div>
+                <?php endif; ?>
+                <div class="details">
+                    <div class="main-details">
+                        <div class="patients m-d">
+                            <i class="fa-solid fa-bed-pulse"></i>
+                            <div class="stat">
+                                <p>Today's Patients</p>
+                                <p class="number"><?php echo $stats['today_patients']; ?></p>
+                            </div>
+                        </div>
+                        <div class="appointments m-d">
+                            <i class="fa-solid fa-calendar-check fa-fw"></i>
+                            <div class="stat">
+                                <p>Appointments</p>
+                                <p class="number"><?php echo $stats['total_appointments']; ?></p>
+                            </div>
                         </div>
                     </div>
                 </div>
