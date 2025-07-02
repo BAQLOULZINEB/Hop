@@ -13,6 +13,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Start transaction
         $db->beginTransaction();
         
+        // Validate date_naissance
+        $date_naissance = isset($_POST['date_naissance']) ? trim($_POST['date_naissance']) : '';
+        $today = date('Y-m-d');
+        if (empty($date_naissance) || $date_naissance === $today) {
+            throw new Exception('Date de naissance invalide ou égale à aujourd\'hui.');
+        }
         // Insert into utilisateur table first
         $query = "INSERT INTO utilisateur (nom, email, mot_de_passe, role) VALUES (:nom, :email, :password, 'patient')";
         $stmt = $db->prepare($query);
@@ -30,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $db->prepare($query);
         $stmt->execute([
             ':id' => $user_id,
-            ':date_naissance' => $_POST['date_naissance']
+            ':date_naissance' => $date_naissance
         ]);
         
         // Commit transaction
@@ -38,9 +44,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $success = "Patient added successfully! Patient ID: " . $user_id;
         
+    } catch(Exception $e) {
+        if (isset($db) && $db->inTransaction()) {
+            $db->rollBack();
+        }
+        $error = 'Error adding patient: ' . $e->getMessage();
     } catch(PDOException $e) {
-        // Rollback transaction on error
-        $db->rollBack();
+        if (isset($db) && $db->inTransaction()) {
+            $db->rollBack();
+        }
         $error = 'Error adding patient: ' . $e->getMessage();
     }
 }
@@ -244,7 +256,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         <div>
                             <label for="date_naissance">Date de naissance</label>
-                            <input type="date" id="date_naissance" name="date_naissance" required>
+                            <input type="date" id="date_naissance" name="date_naissance" required value="">
                         </div>
                         <div class="save-button">
                             <button type="submit">

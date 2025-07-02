@@ -43,6 +43,8 @@ function validateEmail($email) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Debug: Log all POST data
+    error_log('POST data: ' . print_r($_POST, true));
     if (isset($_POST['login'])) {
         $email = $_POST['email'];
         $password = $_POST['password'];
@@ -162,12 +164,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $stmt = $pdo->prepare("SELECT id FROM utilisateur WHERE email = ?");
                 $stmt->execute([$email]);
                 if ($stmt->rowCount() > 0) {
-                    $_SESSION['error'] = "Email already exists";
+                    $_SESSION['error'] = "A user with this email already exists";
                 } else {
                     // Insert new user
                     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
                     $stmt = $pdo->prepare("INSERT INTO utilisateur (nom, email, mot_de_passe, role) VALUES (?, ?, ?, ?)");
-                    
                     try {
                         $stmt->execute([$nom, $email, $hashed_password, $role]);
                         $user_id = $pdo->lastInsertId();
@@ -176,53 +177,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         switch($role) {
                             case 'admin':
                                 $stmt = $pdo->prepare("INSERT INTO admin (id) VALUES (?)");
+                                $stmt->execute([$user_id]);
                                 break;
                             case 'medecin':
                                 $stmt = $pdo->prepare("INSERT INTO medecin (id, specialite) VALUES (?, ?)");
+                                $stmt->execute([$user_id, $selected_specialite]);
                                 break;
                             case 'patient':
-                                $stmt = $pdo->prepare("INSERT INTO patient (id) VALUES (?)");
+                                $date_naissance = isset($_POST['date_naissance']) ? trim($_POST['date_naissance']) : null;
+                                // Debug log for email, nom, and date_naissance
+                                error_log("Registration received: email=" . $email . ", nom=" . $nom . ", date_naissance=" . $date_naissance);
+                                // Server-side validation for date_naissance
+                                $today = date('Y-m-d');
+                                if (empty($date_naissance) || $date_naissance === $today) {
+                                    $_SESSION['error'] = "Invalid or missing date of birth.";
+                                    header('Location: Authentification.php');
+                                    exit();
+                                }
+                                $stmt = $pdo->prepare("INSERT INTO patient (id, date_naissance) VALUES (?, ?)");
+                                $stmt->execute([$user_id, $date_naissance]);
                                 break;
                         }
-                        if ($role === 'medecin') {
-                            $stmt->execute([$user_id, $selected_specialite]);
-                        } else {
-                            $stmt->execute([$user_id]);
-                        }
-                        
+                        // Always clear error and show only success after successful registration
+                        unset($_SESSION['error']);
                         $_SESSION['success'] = "Registration successful! Please login.";
                     } catch(PDOException $e) {
-                        $_SESSION['error'] = "Registration failed: " . $e->getMessage();
+                        // Only set error if an actual error occurs
+                        if (strpos($e->getMessage(), '1062 Duplicate entry') !== false) {
+                            $_SESSION['error'] = "A user with this information already exists. Please try again with different details.";
+                        } else {
+                            $_SESSION['error'] = "Registration failed. Please try again.";
+                        }
                     }
                 }
-            }
-        }
-
-        // Handle saving date_naissance for patients
-        if ($role === 'patient') {
-            if (isset($_POST['date_naissance']) && !empty($_POST['date_naissance'])) {
-                $date_naissance = trim($_POST['date_naissance']);
-                // Basic date format validation (YYYY-MM-DD)
-                if (!preg_match('/^\\d{4}-\\d{2}-\\d{2}$/', $date_naissance)) {
-                    $_SESSION['error'] = "Invalid date format for date of birth.";
-                    header('Location: Authentification.php');
-                    exit();
-                }
-
-                // Assuming the patient table has a date_naissance column
-                try {
-                    $stmt = $pdo->prepare("UPDATE patient SET date_naissance = ? WHERE id = ?");
-                    $stmt->execute([$date_naissance, $user_id]);
-                } catch(PDOException $e) {
-                    // Handle error (e.g., log it)
-                    error_log("Failed to save date_naissance for patient: " . $e->getMessage());
-                    // Optionally, set an error message for the user
-                    // $_SESSION['error'] = "Failed to save date of birth.";
-                }
-            } else {
-                $_SESSION['error'] = "Date of birth is required for patient registration.";
-                header('Location: Authentification.php');
-                exit();
             }
         }
 
@@ -677,7 +664,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </select>
                     </div>
                     <div class="field date-naissance-field">
-                        <input type="date" name="date_naissance" required>
+                        <input type="date" name="date_naissance" required autocomplete="off" placeholder="YYYY-MM-DD" value="">
                     </div>
                     <div class="field">
                         <input type="password" name="password" placeholder="Password" required>
@@ -875,12 +862,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             signupEmailInput.addEventListener('input', toggleSpecialityField);
             signupEmailInput.addEventListener('change', toggleSpecialityField);
 
-            specialitySelect.addEventListener('change', function() {
-                if (specialitySelect.value !== '') {
-                    specialityField.style.display = 'none';
-                }
-            });
-
             // Form validation setup - Real-time and on blur
             function setupValidation(inputs) {
                 inputs.forEach(input => {
@@ -967,6 +948,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 if (!isFormValid) {
                     e.preventDefault();
+                }
+
+                // Ensure date_naissance field is enabled and visible before submitting the signup form
+                if (dateNaissanceField && dateNaissanceInput) {
+                    dateNaissanceField.style.display = 'block';
+                    dateNaissanceInput.disabled = false;
+                    // Log the value to the browser console for debugging
+                    console.log('Date to be sent:', dateNaissanceInput.value);
                 }
             });
 

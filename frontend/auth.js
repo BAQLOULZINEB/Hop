@@ -3,6 +3,7 @@ const loginForm = document.querySelector('form.login');
 const signupForm = document.querySelector('form.signup');
 const loginInputs = loginForm.querySelectorAll('input[type="text"], input[type="password"]');
 const signupInputs = signupForm.querySelectorAll('input[type="text"], input[type="password"]');
+const dateNaissanceInput = signupForm.querySelector('input[name="date_naissance"]');
 
 // Fonction de validation des champs
 function validateField(input, type) {
@@ -113,6 +114,22 @@ signupForm.addEventListener('submit', function(e) {
         isValid = false;
     }
 
+    // Custom date validation
+    if (dateNaissanceInput) {
+        const selectedDate = dateNaissanceInput.value;
+        const today = new Date().toISOString().split('T')[0];
+        if (!selectedDate) {
+            showError(dateNaissanceInput, 'Please select a date of birth.');
+            e.preventDefault();
+            return;
+        }
+        if (selectedDate === today) {
+            showError(dateNaissanceInput, 'Date of birth cannot be today.');
+            e.preventDefault();
+            return;
+        }
+    }
+
     if (isValid) {
         try {
             // Ici, vous ajouteriez votre logique d'inscription réelle
@@ -180,4 +197,51 @@ function isAllowedDomain(email) {
         email.endsWith('@med.com') ||
         email.endsWith('@pat.com')
     );
-} 
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const signupEmailInput = document.querySelector('.signup input[name="email"]');
+    const specialityField = document.querySelector('.speciality-field');
+    const specialitySelect = document.querySelector('.speciality-field select');
+    const dateNaissanceField = document.querySelector('.date-naissance-field');
+    const dateNaissanceInput = document.querySelector('.date-naissance-field input[name="date_naissance"]');
+
+    function toggleSpecialityField() {
+        const email = signupEmailInput ? signupEmailInput.value.trim() : '';
+
+        if (email.endsWith('@med.com')) {
+            if (specialityField) {
+                specialityField.style.display = 'block';
+                specialitySelect && specialitySelect.setAttribute('required', 'required');
+            }
+            if (dateNaissanceField) {
+                dateNaissanceField.style.display = 'none';
+                dateNaissanceInput && dateNaissanceInput.removeAttribute('required');
+            }
+        } else if (email.endsWith('@pat.com')) {
+            if (specialityField) {
+                specialityField.style.display = 'none';
+                specialitySelect && specialitySelect.removeAttribute('required');
+            }
+            if (dateNaissanceField) {
+                dateNaissanceField.style.display = 'block';
+                dateNaissanceInput && dateNaissanceInput.setAttribute('required', 'required');
+            }
+        } else {
+            if (specialityField) {
+                specialityField.style.display = 'none';
+                specialitySelect && specialitySelect.removeAttribute('required');
+            }
+            if (dateNaissanceField) {
+                dateNaissanceField.style.display = 'none';
+                dateNaissanceInput && dateNaissanceInput.removeAttribute('required');
+            }
+        }
+    }
+
+    if (signupEmailInput) {
+        toggleSpecialityField();
+        signupEmailInput.addEventListener('input', toggleSpecialityField);
+        signupEmailInput.addEventListener('change', toggleSpecialityField);
+    }
+}); 

@@ -12,6 +12,11 @@ try {
     $db->beginTransaction();
     
     $patient_id = $_POST['patient_id'];
+    $date_naissance = isset($_POST['date_naissance']) ? trim($_POST['date_naissance']) : '';
+    $today = date('Y-m-d');
+    if (empty($date_naissance) || $date_naissance === $today) {
+        throw new Exception('Date de naissance invalide ou égale à aujourd\'hui.');
+    }
     
     // Update utilisateur table
     $query = "UPDATE utilisateur SET 
@@ -33,7 +38,7 @@ try {
               WHERE id = :id";
     $stmt = $db->prepare($query);
     $stmt->execute([
-        ':date_naissance' => $_POST['date_naissance'],
+        ':date_naissance' => $date_naissance,
         ':genre' => $_POST['genre'],
         ':telephone' => $_POST['telephone'],
         ':id' => $patient_id
