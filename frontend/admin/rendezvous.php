@@ -113,7 +113,7 @@ $rendezvous = $stmt->fetchAll(PDO::FETCH_ASSOC);
             background: rgba(255,255,255,0.08);
         }
         button, .illness-list button {
-            background: linear-gradient(90deg, #0e2f44 60%, #1a5276 100%);
+            background: linear-gradient(90deg, #ff9800 60%, #ff5722 100%);
             color: #fff;
             border: none;
             border-radius: 7px;
@@ -125,7 +125,7 @@ $rendezvous = $stmt->fetchAll(PDO::FETCH_ASSOC);
             box-shadow: 0 2px 8px rgba(44,62,80,0.08);
         }
         button:hover, .illness-list button:hover {
-            background: linear-gradient(90deg, #1a5276 60%, #0e2f44 100%);
+            background: linear-gradient(90deg, #ff5722 60%, #ff9800 100%);
         }
         @media (max-width: 900px) {
             .illness-list {

@@ -269,12 +269,14 @@ try {
                         <table>
                             <thead>
                                 <tr>
-                                    <td colspan="2">Upcoming Appointments</td>
+                                    <td colspan="3">Upcoming Appointments</td>
+                                    <td></td>
                                 </tr>
                                 <tr>
                                     <td>Doctor Name</td>
                                     <td>Date & Time</td>
                                     <td>Department</td>
+                                    <td>Status</td>
                                 </tr>
                             </thead>
                             <tbody>
@@ -285,11 +287,12 @@ try {
                                             <td><?php echo htmlspecialchars($appointment['doctor_name']); ?></td>
                                             <td><?php echo date('d M Y H:i', strtotime($appointment['date_rendezvous'])); ?></td>
                                             <td><?php echo htmlspecialchars($appointment['specialite']); ?></td>
+                                            <td><?php echo htmlspecialchars($appointment['statut']); ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>
-                                        <td colspan="7" style="text-align: center;">No upcoming appointments</td>
+                                        <td colspan="4" style="text-align: center;">No upcoming appointments</td>
                                     </tr>
                                 <?php endif; ?>
                             </tbody>
