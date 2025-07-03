@@ -161,6 +161,11 @@ $patients = $pdo->query('SELECT p.id, u.nom FROM patient p JOIN utilisateur u ON
                         <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['nom']) ?> (ID: <?= $p['id'] ?>)</option>
                     <?php endforeach; ?>
                 </select>
+                <label for="dateSelect">Choisir une date :</label>
+                <select id="dateSelect" style="margin-bottom:24px;">
+                    <option value="">-- Sélectionner une date --</option>
+                </select>
+                <button id="viewByDayBtn" style="margin-bottom:24px;">Voir les mesures de ce jour</button>
                 <div id="currentTempBox" style="margin-bottom:24px; font-size:1.5em; color:#e67e22; font-weight:bold;">
                     Température actuelle : <span id="currentTemp">--</span> °C
                 </div>
@@ -200,6 +205,8 @@ $patients = $pdo->query('SELECT p.id, u.nom FROM patient p JOIN utilisateur u ON
     const chartsDiv = document.getElementById('charts');
     const noDataDiv = document.getElementById('noData');
     const loadPrevWeekBtn = document.getElementById('loadPrevWeek');
+    const dateInput = document.getElementById('dateSelect');
+    const viewByDayBtn = document.getElementById('viewByDayBtn');
     let allData = [];
     let currentWeekStart = null;
     let prevWeekLoaded = false;
@@ -364,6 +371,25 @@ $patients = $pdo->query('SELECT p.id, u.nom FROM patient p JOIN utilisateur u ON
             }
         }, 5000);
     }
+    // Fetch available dates for the selected patient and populate the dropdown
+    async function updateDateDropdown(patientId) {
+        dateInput.innerHTML = '<option value="">-- Sélectionner une date --</option>';
+        if (!patientId) return;
+        try {
+            const res = await fetch(`../../backend/api/get_mesures.php?patient_id=${patientId}&dates_only=1`);
+            const dates = await res.json();
+            if (Array.isArray(dates)) {
+                dates.forEach(date => {
+                    const opt = document.createElement('option');
+                    opt.value = date;
+                    opt.textContent = date;
+                    dateInput.appendChild(opt);
+                });
+            }
+        } catch (e) {
+            // Optionally handle error
+        }
+    }
     select.addEventListener('change', async function() {
         const id = this.value;
         if (!id) {
@@ -372,6 +398,7 @@ $patients = $pdo->query('SELECT p.id, u.nom FROM patient p JOIN utilisateur u ON
             noDataDiv.style.display = 'none';
             loadPrevWeekBtn.style.display = 'none';
             if (tempInterval) clearInterval(tempInterval);
+            updateDateDropdown("");
             return;
         }
         // Semaine courante (lundi)
@@ -380,6 +407,7 @@ $patients = $pdo->query('SELECT p.id, u.nom FROM patient p JOIN utilisateur u ON
         prevWeekLoaded = false;
         await updateAll(id, currentWeekStart);
         startTempPolling(id);
+        updateDateDropdown(id);
     });
     loadPrevWeekBtn.addEventListener('click', async function() {
         if (!select.value || prevWeekLoaded) return;
@@ -389,6 +417,66 @@ $patients = $pdo->query('SELECT p.id, u.nom FROM patient p JOIN utilisateur u ON
         renderChartsForWeek(prevMonday);
         loadPrevWeekBtn.style.display = 'none';
         prevWeekLoaded = true;
+    });
+    viewByDayBtn.addEventListener('click', function() {
+        const selectedDate = dateInput.value;
+        if (!selectedDate || !select.value) {
+            alert("Veuillez sélectionner un patient et une date.");
+            return;
+        }
+        // Filtrer les données pour ce jour
+        const dayData = allData.filter(m => m.date_mesure.substr(0, 10) === selectedDate);
+        clearCharts();
+        if (dayData.length === 0) {
+            noDataDiv.style.display = 'block';
+            return;
+        }
+        noDataDiv.style.display = 'none';
+        // Affichage similaire à renderChartsForWeek, mais pour un seul jour
+        const labels = dayData.map(m => formatHour(m.date_mesure));
+        const pulse = dayData.map(m => {
+            const val = parseInt(m.pulsation);
+            return val > 0 ? val : null;
+        });
+        const smoothedPulse = smoothData(pulse, 5);
+
+        const card = document.createElement('div');
+        card.className = 'chart-card';
+        const title = document.createElement('div');
+        title.className = 'chart-title';
+        title.textContent = `Rythme cardiaque du ${formatDate(selectedDate)}`;
+        card.appendChild(title);
+        const canvas = document.createElement('canvas');
+        card.appendChild(canvas);
+        chartsDiv.appendChild(card);
+        const chart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Pulsation',
+                    data: smoothedPulse,
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'transparent',
+                    fill: false,
+                    tension: 0.4,
+                    borderWidth: 1.5,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true, labels: { color: '#555', font: { size: 15 } } },
+                    title: { display: false }
+                },
+                scales: {
+                    x: { ticks: { color: '#888', maxRotation: 45, minRotation: 0, autoSkip: true, maxTicksLimit: 20 } },
+                    y: { ticks: { color: '#888' } }
+                }
+            }
+        });
+        chartInstances.push(chart);
     });
     </script>
 </body>

@@ -205,6 +205,43 @@ if (isset($_POST['logout'])) {
             </div>
 
             <style>
+                /* Make table text white for better readability */
+                .illness-list h2 {
+                    color: white !important;
+                    font-weight: bold;
+                    margin-bottom: 20px;
+                }
+                
+                .illness-list table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 20px;
+                    background-color: rgba(255, 255, 255, 0.1);
+                    border-radius: 8px;
+                    overflow: hidden;
+                }
+                
+                .illness-list table th {
+                    background-color: rgba(14, 47, 68, 0.8);
+                    color: white !important;
+                    padding: 12px;
+                    text-align: left;
+                    font-weight: bold;
+                    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+                }
+                
+                .illness-list table td {
+                    color: white !important;
+                    padding: 12px;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    background-color: rgba(255, 255, 255, 0.05);
+                }
+                
+                .illness-list table tr:hover td {
+                    background-color: rgba(255, 255, 255, 0.15);
+                }
+                
+                /* Modal styles */
                 .modal {
                     display: none;
                     position: fixed;
@@ -266,7 +303,7 @@ if (isset($_POST['logout'])) {
                     border-radius: 4px;
                 }
                 .consultation-btn {
-                    background-color: #0e2f44;
+                    background-color: #ff6b35;
                     color: white;
                     padding: 8px 16px;
                     border: none;
@@ -275,7 +312,7 @@ if (isset($_POST['logout'])) {
                     transition: background-color 0.3s;
                 }
                 .consultation-btn:hover {
-                    background-color: #1a5276;
+                    background-color: #e55a2b;
                 }
                 .submit-btn {
                     background-color: #0e2f44;
